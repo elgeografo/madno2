@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_DB: mydb
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: gh67yMn_kj
     ports:
       - "9061:5432"   # PostgreSQL expuesto en el host por el puerto 9061
     volumes:
@@ -26,7 +26,7 @@ services:
     container_name: pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_DEFAULT_PASSWORD: gh67yMn_kj
     ports:
       - "9060:80"   # pgAdmin expuesto en el host por el puerto 9060
     volumes:
