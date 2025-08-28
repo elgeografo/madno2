@@ -1,10 +1,10 @@
-version: "3.9"
+version: "3.3"
 
 services:
   db:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dockerfile        # <-- minúsculas según tu repo
     container_name: pg-kartoza-h3
     environment:
       POSTGRES_DB: mydb
@@ -32,5 +32,5 @@ services:
     volumes:
       - /mnt/data/srv/madno2/pgadmin:/var/lib/pgadmin
     depends_on:
-      - db            # sin condition en v3
+      - db                       # en v3.x de docker-compose, sin 'condition'
     restart: always
