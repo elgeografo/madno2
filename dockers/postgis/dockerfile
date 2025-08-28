@@ -1,10 +1,6 @@
 FROM kartoza/postgis:17-3.5--v2025.08.23
 
-# Toolchain + PG headers (todas las versiones) + PGXN
+# Instalar H3 como paquete binario para PostgreSQL 17 desde PGDG
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      build-essential cmake git ca-certificates \
-      postgresql-server-dev-all pgxnclient \
+      postgresql-17-h3 \
   && rm -rf /var/lib/apt/lists/*
-
-# Instalar H3 desde PGXN (compila e instala)
-RUN pgxn install h3
