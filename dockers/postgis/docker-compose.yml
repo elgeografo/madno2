@@ -1,4 +1,4 @@
-version: "3"
+version: "3.9"
 
 services:
   db:
@@ -11,7 +11,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: gh67yMn_kj
     ports:
-      - "9061:5432"   # PostgreSQL expuesto en el host por el puerto 9061
+      - "9061:5432"
     volumes:
       - /mnt/data/srv/madno2/postgres:/var/lib/postgresql/data
     healthcheck:
@@ -28,12 +28,9 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: gh67yMn_kj
     ports:
-      - "9060:80"   # pgAdmin expuesto en el host por el puerto 9060
+      - "9060:80"
     volumes:
       - /mnt/data/srv/madno2/pgadmin:/var/lib/pgadmin
     depends_on:
-      db:
-        condition: service_healthy
+      - db            # sin condition en v3
     restart: always
-
-volumes: {}
