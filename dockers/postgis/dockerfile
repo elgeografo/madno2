@@ -1,12 +1,10 @@
-# Ajusta la etiqueta a la que ya usas en tu proyecto
 FROM kartoza/postgis:17-3.5--v2025.08.23
 
-# Herramientas de compilación + headers de Postgres + PGXN
+# Toolchain + PG headers (todas las versiones) + PGXN
 RUN apt-get update && apt-get install -y --no-install-recommends \
       build-essential cmake git ca-certificates \
-      postgresql-server-dev-$PG_MAJOR pgxnclient \
+      postgresql-server-dev-all pgxnclient \
   && rm -rf /var/lib/apt/lists/*
 
-# Instalar la extensión H3 desde PGXN (compila e instala)
-# Puedes fijar versión: pgxn install 'h3=4.1.3'
+# Instalar H3 desde PGXN (compila e instala)
 RUN pgxn install h3
