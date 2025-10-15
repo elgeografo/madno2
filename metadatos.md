@@ -24,3 +24,4 @@ https://datos.madrid.es/FWProjects/egob/Catalogo/MedioAmbiente/Aire/Ficheros/Int
 El Ayuntamiento de Madrid realiza la evaluación de la calidad del aire conforme a las directrices y requisitos establecidos en el RD 102/2011 y la Directiva de la Unión Europea 50/2008
 
 ### hay que filtrar los resultados por magnitud
+el codigo de magnitus es 8
