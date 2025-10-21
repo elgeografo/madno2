@@ -10,7 +10,7 @@ import { edgeLength, UNITS } from 'h3-js/legacy';
 const H3_RES = 9;
 const RADIUS_METERS = edgeLength(H3_RES, UNITS.m); // radio aprox. del hex de H3 en metros
 // Carpeta base donde están los CSV/GeoJSON. Ajusta si tus datos están en otra ruta.
-const DATA_BASE = '/data/madno2020';
+const DATA_BASE = '/data/madno2024';
 const ANIM_MS = 1000; // 1s por frame
 // ===========================================
 
@@ -48,9 +48,9 @@ function buildFrames({ year, month, day, hour }) {
   if (!year) return [];
   const frames = [];
 
-  // Caso 1: Año + Mes + Día => animación por horas (00..23) de ese día
+  // Caso 1: Año + Mes + Día => animación por horas (01..24) de ese día
   if (year && month && day && !Number.isNaN(Number(day))) {
-    for (let h = 0; h < 24; h++) frames.push({ year, month, day, hour: h });
+    for (let h = 1; h <= 24; h++) frames.push({ year, month, day, hour: h });
     return frames;
   }
 
@@ -67,7 +67,7 @@ function buildFrames({ year, month, day, hour }) {
   if (year && month && !day && (hour === '' || hour === undefined)) {
     const dim = daysInMonth(year, month);
     for (let d = 1; d <= dim; d++) {
-      for (let h = 0; h < 24; h++) frames.push({ year, month, day: d, hour: h });
+      for (let h = 1; h <= 24; h++) frames.push({ year, month, day: d, hour: h });
     }
     return frames;
   }
@@ -77,7 +77,7 @@ function buildFrames({ year, month, day, hour }) {
     for (let m = 1; m <= 12; m++) {
       const dim = daysInMonth(year, m);
       for (let d = 1; d <= dim; d++) {
-        for (let h = 0; h < 24; h++) frames.push({ year, month: m, day: d, hour: h });
+        for (let h = 1; h <= 24; h++) frames.push({ year, month: m, day: d, hour: h });
       }
     }
     return frames;
@@ -304,8 +304,9 @@ function App() {
   ];
 
   const curFrame = frames[frameIdx];
+  const displayHour = curFrame ? (curFrame.hour === 24 ? 0 : curFrame.hour) : 0;
   const label = curFrame
-    ? `${curFrame.year}-${pad2(curFrame.month)}-${pad2(curFrame.day)} ${pad2(curFrame.hour)}:00`
+    ? `${curFrame.year}-${pad2(curFrame.month)}-${pad2(curFrame.day)} ${pad2(displayHour)}:00`
     : '—';
 
   return (
@@ -455,9 +456,12 @@ function App() {
             <label><strong>Hora</strong></label>
             <select value={hour} onChange={(e) => setHour(e.target.value === '' ? '' : Number(e.target.value))} style={{ width: '100%' }}>
               <option value="">—</option>
-              {[...Array(24)].map((_, i) => (
-                <option key={i} value={i}>{pad2(i)}:00</option>
-              ))}
+              {[...Array(24)].map((_, i) => {
+                const hh = i + 1; // 1..24
+                return (
+                  <option key={hh} value={hh}>{pad2(hh)}:00</option>
+                );
+              })}
             </select>
           </div>
         </div>

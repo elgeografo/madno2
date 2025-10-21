@@ -95,3 +95,31 @@ Nos vamos a la base de datos de postgres y el gestor de queries escribimos esot
     g.geom
     FROM geom_cells AS g
     WHERE ST_Intersects(g.geom, (SELECT geom FROM aoi));
+
+
+## querys interesantes
+
+### cuenta el numero total de registros
+SELECT COUNT(*) AS total_registros
+FROM madno.h3_points;
+
+### agrupa todos los indez y cuenta su número
+SELECT 
+    h3_index,
+    COUNT(*) AS total_registros
+FROM madno.h3_points
+GROUP BY h3_index
+ORDER BY total_registros DESC;
+
+### saca todos los registros que están a una determinada hora
+SELECT *
+FROM madno.h3_points
+WHERE h3_index = '89390ca0083ffff'
+  AND EXTRACT(HOUR FROM dt) = 15;
+
+
+## Temas de python
+source .venv/bin/activate.      # para meterme en el entorno virtual
+pip freeze > requirements.txt   # para grabar las dependencias
+deactivate                      # para salir del entorno virtual
+

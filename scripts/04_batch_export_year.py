@@ -1,13 +1,13 @@
 """
-Batch export anual: recorre todas las horas de un año y llama al script 03_export_h3_points.py
+Batch export anual: recorre todas las horas de un año y llama al script 03_export_h3_points_convexhull.py
 para generar CSV + GeoJSON por cada hora.
 
 Uso:
     python scripts/04_batch_export_year.py \
         --year 2024 \
-        --outdir /Volumes/MV/carto/madno/2020 \
+        --outdir /Volumes/MV/carto/madno/2024 \
         --h3-res 9 \
-        --variable 12
+        --variable 8
 
 Notas:
 - No crea el directorio de salida: debe existir previamente.
@@ -40,7 +40,7 @@ def ensure_outdir_exists(path: str):
 
 def run_export_03(py_exe: str, script_03: str, year: int, month: int, day: int, hour: int,
                   variable: int, h3_res: int, out_csv: str, out_geojson: str) -> subprocess.CompletedProcess:
-    """Lanza el script 03_export_h3_points.py con los parámetros adecuados."""
+    """Lanza el script 03_export_h3_points_convexhull.py con los parámetros adecuados."""
     cmd = [
         py_exe,
         script_03,
@@ -83,7 +83,7 @@ def main():
 
     # Resolver ruta al script 03 (en el mismo directorio que este 04)
     here = os.path.dirname(os.path.abspath(__file__))
-    script_03 = os.path.join(here, "03_export_h3_points.py")
+    script_03 = os.path.join(here, "03_export_h3_points_convexhull.py")
     if not os.path.isfile(script_03):
         logging.error("No se encuentra el script 03 en %s", script_03)
         sys.exit(1)
@@ -102,7 +102,7 @@ def main():
     ok_count = skip_count = fail_count = 0
 
     for d in iter_days(args.year):
-        for h in range(24):
+        for h in range(1, 25):
             base = f"points_{d.strftime('%Y%m%d')}_{h:02d}_res{args.h3_res}"
             out_csv = os.path.join(args.outdir, base + ".csv")
             out_geojson = os.path.join(args.outdir, base + ".geojson")
