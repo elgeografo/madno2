@@ -4,8 +4,8 @@ para generar CSV + GeoJSON por cada hora.
 
 Uso:
     python scripts/04_batch_export_year.py \
-        --year 2024 \
-        --outdir /Volumes/MV/carto/madno/2024 \
+        --year 2001,2002,2003,2004,2005 \
+        --outdir /Volumes/MV/carto/madno \
         --h3-res 9 \
         --variable 8
 
@@ -59,7 +59,7 @@ def run_export_03(py_exe: str, script_03: str, year: int, month: int, day: int, 
 
 def main():
     parser = argparse.ArgumentParser(description="Batch export año completo -> llama al 03 por cada hora del año")
-    parser.add_argument("--year", type=int, required=True, help="Año a procesar (e.g., 2024)")
+    parser.add_argument("--year", type=str, required=True, help="Año(s) a procesar separados por coma (e.g., 2024 o 2001,2002,2005)")
     parser.add_argument("--outdir", type=str, required=True, help="Directorio de salida (debe existir)")
     parser.add_argument("--h3-res", type=int, default=9, help="Resolución H3 (defecto=9)")
     parser.add_argument("--variable", type=int, default=12, help="Código de variable atmosférica (defecto=12)")
@@ -68,13 +68,10 @@ def main():
 
     ensure_outdir_exists(args.outdir)
 
-    # Preparar logging
-    log_path = args.log or os.path.join(args.outdir, f"export_{args.year}_res{args.h3_res}.log")
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
-            logging.FileHandler(log_path, encoding="utf-8"),
             logging.StreamHandler(sys.stdout),
         ],
     )
@@ -88,57 +85,86 @@ def main():
         logging.error("No se encuentra el script 03 en %s", script_03)
         sys.exit(1)
 
+    # Parsear lista de años (coma-separados)
+    try:
+        years = [int(y.strip()) for y in str(args.year).split(',') if y.strip()]
+    except ValueError:
+        logging.error("--year debe contener enteros separados por coma, p.ej.: 2024 o 2001,2002,2005")
+        sys.exit(2)
+    if not years:
+        logging.error("No se proporcionó ningún año válido en --year")
+        sys.exit(2)
+
     # Preparar barra de progreso (opcional)
     try:
         from tqdm import tqdm  # type: ignore
-        use_pbar = True
+        have_tqdm = True
     except Exception:
         tqdm = None
-        use_pbar = False
+        have_tqdm = False
 
-    total_hours = sum(24 for _ in iter_days(args.year))
-    pbar = tqdm(total=total_hours, desc=f"Export {args.year}") if use_pbar else None
+    # Procesa cada año por separado, creando su subcarpeta y su log
+    for year in years:
+        # Crea subcarpeta por año
+        year_dir = os.path.join(args.outdir, str(year))
+        os.makedirs(year_dir, exist_ok=True)
 
-    ok_count = skip_count = fail_count = 0
+        # Fichero de log por año (si no se pasó --log, se crea dentro del directorio del año)
+        log_path = args.log or os.path.join(year_dir, f"export_{year}_res{args.h3_res}.log")
+        file_handler = logging.FileHandler(log_path, encoding="utf-8")
+        file_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+        logging.getLogger().addHandler(file_handler)
 
-    for d in iter_days(args.year):
-        for h in range(1, 25):
-            base = f"points_{d.strftime('%Y%m%d')}_{h:02d}_res{args.h3_res}"
-            out_csv = os.path.join(args.outdir, base + ".csv")
-            out_geojson = os.path.join(args.outdir, base + ".geojson")
+        logging.info("Inicio de exportación anual")
+        logging.info("Parámetros: year=%s, outdir=%s, h3_res=%s, variable=%s", year, year_dir, args.h3_res, args.variable)
 
-            # Ejecutar 03
-            res = run_export_03(sys.executable, script_03, d.year, d.month, d.day, h,
-                                args.variable, args.h3_res, out_csv, out_geojson)
+        total_hours = sum(24 for _ in iter_days(year))
+        pbar = tqdm(total=total_hours, desc=f"Export {year}") if have_tqdm else None
 
-            # Comprobación de resultado (y ficheros creados)
-            csv_exists = os.path.isfile(out_csv)
-            gj_exists = os.path.isfile(out_geojson)
+        ok_count = skip_count = fail_count = 0
 
-            if res.returncode == 0 and csv_exists and gj_exists:
-                ok_count += 1
-                logging.info("OK %s %02d: %s", d.isoformat(), h, base)
-            else:
-                # Si ya existían, marcamos skip
-                if csv_exists and gj_exists:
-                    skip_count += 1
-                    logging.warning("SKIP (ya existían) %s %02d: %s", d.isoformat(), h, base)
+        for d in iter_days(year):
+            for h in range(1, 25):
+                base = f"points_{d.strftime('%Y%m%d')}_{h:02d}_res{args.h3_res}"
+                out_csv = os.path.join(year_dir, base + ".csv")
+                out_geojson = os.path.join(year_dir, base + ".geojson")
+
+                # Ejecutar 03
+                res = run_export_03(sys.executable, script_03, d.year, d.month, d.day, h,
+                                    args.variable, args.h3_res, out_csv, out_geojson)
+
+                # Comprobación de resultado (y ficheros creados)
+                csv_exists = os.path.isfile(out_csv)
+                gj_exists = os.path.isfile(out_geojson)
+
+                if res.returncode == 0 and csv_exists and gj_exists:
+                    ok_count += 1
+                    logging.info("OK %s %02d: %s", d.isoformat(), h, base)
                 else:
-                    fail_count += 1
-                    logging.error(
-                        "FAIL %s %02d: %s | return=%s | stdout=%s | stderr=%s",
-                        d.isoformat(), h, base, res.returncode,
-                        (res.stdout or "").strip(), (res.stderr or "").strip(),
-                    )
+                    # Si ya existían, marcamos skip
+                    if csv_exists and gj_exists:
+                        skip_count += 1
+                        logging.warning("SKIP (ya existían) %s %02d: %s", d.isoformat(), h, base)
+                    else:
+                        fail_count += 1
+                        logging.error(
+                            "FAIL %s %02d: %s | return=%s | stdout=%s | stderr=%s",
+                            d.isoformat(), h, base, res.returncode,
+                            (res.stdout or "").strip(), (res.stderr or "").strip(),
+                        )
 
-            if pbar is not None:
-                pbar.update(1)
+                if pbar is not None:
+                    pbar.update(1)
 
-    if pbar is not None:
-        pbar.close()
+        if pbar is not None:
+            pbar.close()
 
-    logging.info("Fin de exportación: OK=%s, SKIP=%s, FAIL=%s, total_hours=%s",
-                 ok_count, skip_count, fail_count, total_hours)
+        logging.info("Fin de exportación %s: OK=%s, SKIP=%s, FAIL=%s, total_hours=%s",
+                     year, ok_count, skip_count, fail_count, total_hours)
+
+        # Quita el file handler de este año antes de pasar al siguiente
+        logging.getLogger().removeHandler(file_handler)
+        file_handler.close()
 
 
 if __name__ == "__main__":

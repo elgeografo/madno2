@@ -192,22 +192,7 @@ def main():
     # Puerto directo de Postgres (si no se usa túnel)
     parser.add_argument("--port", type=int, default=5432)
 
-    # Añadir argumento de años
-    parser.add_argument("--years", type=str, default=None, help="Años separados por coma; se buscarán CSV en subcarpetas de --input con el nombre del año (e.g., 2001,2002,2005)")
-
     args = parser.parse_args()
-
-    # Parseo de años si se especifican
-    years_list: list[int] | None = None
-    if args.years:
-        try:
-            years_list = [int(y.strip()) for y in args.years.split(',') if y.strip()]
-        except ValueError:
-            print("--years debe contener enteros separados por coma, p.ej.: 2001,2002,2005", file=sys.stderr)
-            sys.exit(2)
-        if not years_list:
-            print("No se proporcionó ningún año válido en --years", file=sys.stderr)
-            sys.exit(2)
 
     if args.use_ssh_tunnel:
         print(f"Estableciendo túnel SSH a {args.ssh_user}@{args.ssh_host}:{args.ssh_port} -> {args.remote_pg_host}:{args.remote_pg_port} ...")
@@ -218,85 +203,6 @@ def main():
                 with conn.cursor() as cur:
                     ensure_schema_and_table(cur, args.schema, args.table)
                     conn.commit()
-                # Descubre y procesa ficheros: por años si se especifican, si no, en --input directamente
-                total_ok, total_fail = 0, 0
-                if years_list:
-                    for year in years_list:
-                        year_dir = os.path.join(args.input, str(year))
-                        files = list(iter_csv_paths(year_dir, args.glob_pattern))
-                        if not files:
-                            print(f"[WARN] No se encontraron CSV para el año {year} en {year_dir}", file=sys.stderr)
-                            continue
-                        print(f"Cargando {len(files)} ficheros del año {year} desde {year_dir} en {args.schema}.{args.table} ...")
-                        ok, fail = 0, 0
-                        for csv_path in tqdm(files, desc=f"Importando {year}"):
-                            try:
-                                with conn.cursor() as cur:
-                                    copy_into_temp(cur, csv_path)
-                                    upsert_from_temp(cur, args.schema, args.table)
-                                conn.commit()
-                                ok += 1
-                            except Exception as e:
-                                conn.rollback()
-                                fail += 1
-                                print(f"[FAIL] {csv_path}: {e}", file=sys.stderr)
-                        print(f"Año {year} terminado. OK={ok}, FAIL={fail}")
-                        total_ok += ok
-                        total_fail += fail
-                else:
-                    files = list(iter_csv_paths(args.input, args.glob_pattern))
-                    if not files:
-                        print("No se encontraron CSV para cargar.", file=sys.stderr)
-                        sys.exit(1)
-                    print(f"Cargando {len(files)} ficheros en {args.schema}.{args.table} ...")
-                    ok, fail = 0, 0
-                    for csv_path in tqdm(files, desc="Importando"):
-                        try:
-                            with conn.cursor() as cur:
-                                copy_into_temp(cur, csv_path)
-                                upsert_from_temp(cur, args.schema, args.table)
-                            conn.commit()
-                            ok += 1
-                        except Exception as e:
-                            conn.rollback()
-                            fail += 1
-                            print(f"[FAIL] {csv_path}: {e}", file=sys.stderr)
-                    print(f"Terminado. OK={ok}, FAIL={fail}")
-                    total_ok += ok
-                    total_fail += fail
-                print(f"TOTAL: OK={total_ok}, FAIL={total_fail}")
-        return
-    else:
-        with get_conn(args.host, args.dbname, args.user, args.password, port=args.port) as conn:
-            conn.autocommit = False
-            with conn.cursor() as cur:
-                ensure_schema_and_table(cur, args.schema, args.table)
-                conn.commit()
-            total_ok, total_fail = 0, 0
-            if years_list:
-                for year in years_list:
-                    year_dir = os.path.join(args.input, str(year))
-                    files = list(iter_csv_paths(year_dir, args.glob_pattern))
-                    if not files:
-                        print(f"[WARN] No se encontraron CSV para el año {year} en {year_dir}", file=sys.stderr)
-                        continue
-                    print(f"Cargando {len(files)} ficheros del año {year} desde {year_dir} en {args.schema}.{args.table} ...")
-                    ok, fail = 0, 0
-                    for csv_path in tqdm(files, desc=f"Importando {year}"):
-                        try:
-                            with conn.cursor() as cur:
-                                copy_into_temp(cur, csv_path)
-                                upsert_from_temp(cur, args.schema, args.table)
-                            conn.commit()
-                            ok += 1
-                        except Exception as e:
-                            conn.rollback()
-                            fail += 1
-                            print(f"[FAIL] {csv_path}: {e}", file=sys.stderr)
-                    print(f"Año {year} terminado. OK={ok}, FAIL={fail}")
-                    total_ok += ok
-                    total_fail += fail
-            else:
                 files = list(iter_csv_paths(args.input, args.glob_pattern))
                 if not files:
                     print("No se encontraron CSV para cargar.", file=sys.stderr)
@@ -315,9 +221,31 @@ def main():
                         fail += 1
                         print(f"[FAIL] {csv_path}: {e}", file=sys.stderr)
                 print(f"Terminado. OK={ok}, FAIL={fail}")
-                total_ok += ok
-                total_fail += fail
-            print(f"TOTAL: OK={total_ok}, FAIL={total_fail}")
+        return
+    else:
+        with get_conn(args.host, args.dbname, args.user, args.password, port=args.port) as conn:
+            conn.autocommit = False
+            with conn.cursor() as cur:
+                ensure_schema_and_table(cur, args.schema, args.table)
+                conn.commit()
+            files = list(iter_csv_paths(args.input, args.glob_pattern))
+            if not files:
+                print("No se encontraron CSV para cargar.", file=sys.stderr)
+                sys.exit(1)
+            print(f"Cargando {len(files)} ficheros en {args.schema}.{args.table} ...")
+            ok, fail = 0, 0
+            for csv_path in tqdm(files, desc="Importando"):
+                try:
+                    with conn.cursor() as cur:
+                        copy_into_temp(cur, csv_path)
+                        upsert_from_temp(cur, args.schema, args.table)
+                    conn.commit()
+                    ok += 1
+                except Exception as e:
+                    conn.rollback()
+                    fail += 1
+                    print(f"[FAIL] {csv_path}: {e}", file=sys.stderr)
+            print(f"Terminado. OK={ok}, FAIL={fail}")
 
 
 if __name__ == "__main__":
@@ -325,13 +253,14 @@ if __name__ == "__main__":
 
 
     '''
-    python3 scripts/06_loadIntoDb_tunnel.py \
+    python3 scripts/06_loadIntoDb.py --input /Volumes/MV/carto/madno/2024 --host db.geoso2.es 138.100.127.190
+
+     python3 scripts/06_loadIntoDb_tunnel.py \
   --use-ssh-tunnel \
   --ssh-host 138.100.127.190 --ssh-port 22 \
   --ssh-user upm --ssh-password 'madrid' \
   --remote-pg-host 127.0.0.1 --remote-pg-port 5432 \
   --dbname gis --user gis --password 'hjJ7_hj76HHjdftGg' \
-  --input /Volumes/MV/carto/madno \
-  --years 2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
+  --input /Volumes/MV/carto/madno/2024
 
     '''
