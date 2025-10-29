@@ -122,4 +122,6 @@ WHERE h3_index = '89390ca0083ffff'
 source .venv/bin/activate.      # para meterme en el entorno virtual
 pip freeze > requirements.txt   # para grabar las dependencias
 deactivate                      # para salir del entorno virtual
+pip install -r requirements.txt # instala todo lo que esté en ese fichero
+
 
