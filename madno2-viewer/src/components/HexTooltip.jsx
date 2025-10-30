@@ -16,8 +16,8 @@ export function HexTooltip({ pickedHex, pointerPos }) {
         pointerEvents: 'none',
       }}
     >
-      <div><strong>Hex ID:</strong> {pickedHex.hexagon}</div>
-      <div><strong>Valor:</strong> {Number(pickedHex.object?.value ?? 0).toFixed(2)}</div>
+      <div><strong>Hex ID:</strong> {pickedHex.h3 || 'N/A'}</div>
+      <div><strong>Valor:</strong> {Number(pickedHex.value ?? 0).toFixed(2)}</div>
     </div>
   );
 }

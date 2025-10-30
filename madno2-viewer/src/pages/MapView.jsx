@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { RADIUS_METERS } from '../config/constants';
 import { DEFAULT_MAP_STYLE } from '../config/mapStyles';
 import { MAPS_CONFIG } from '../config/mapsConfig';
 import { buildFrames } from '../utils/frameBuilder';
 import { useDataLoader } from '../hooks/useDataLoader';
+import { useParquetDataLoaderCompat } from '../hooks/useParquetDataLoader';
 import { useAnimation } from '../hooks/useAnimation';
 import { useHexPicker } from '../hooks/useHexPicker';
 import { createLayers } from '../layers/createLayers';
@@ -131,7 +132,19 @@ export function MapView() {
 
   // Hooks personalizados
   const { frameIdx, setFrameIdx, playing, handlePlay, handlePause, handleStop } = useAnimation(frames);
-  const h3Data = useDataLoader(frames, frameIdx);
+
+  // Seleccionar el loader apropiado según la configuración
+  const dataSourceType = mapConfig?.dataSource?.type || 'csv';
+  const h3DataCsv = useDataLoader(frames, frameIdx);
+  const h3DataParquet = useParquetDataLoaderCompat(
+    frames,
+    frameIdx,
+    mapConfig?.dataSource?.parquetBase
+  );
+
+  // Usar el loader apropiado
+  const h3Data = dataSourceType === 'parquet' ? h3DataParquet : h3DataCsv;
+
   const { pickedHex, pointerPos, handleClick } = useHexPicker();
   // Solo usar datos si la capa H3 está activada
   const data = layersConfig.h3Hexagons ? h3Data : [];
@@ -271,14 +284,6 @@ export function MapView() {
 
       {controls.animationPanel && (
         <AnimationPanel
-          year={year}
-          setYear={setYear}
-          month={month}
-          setMonth={setMonth}
-          day={day}
-          setDay={setDay}
-          hour={hour}
-          setHour={setHour}
           frames={frames}
           frameIdx={frameIdx}
           setFrameIdx={setFrameIdx}

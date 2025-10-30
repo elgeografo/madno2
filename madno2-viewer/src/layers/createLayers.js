@@ -109,8 +109,8 @@ export function createLayers(data, {
         getHexagon: (d) => d.h3,
         getId: (d) => d.h3,
         transitions: {
-          getElevation: { duration: 800, enter: (d) => d.prevValue ?? 0 },
-          getFillColor: { duration: 800, enter: (d) => colorFromValue(d.prevValue ?? 0) },
+          getElevation: { duration: 1000, enter: (d) => d.prevValue ?? 0 },
+          getFillColor: { duration: 1000, enter: (d) => colorFromValue(d.prevValue ?? 0) },
         },
         getFillColor: (d) => colorFromValue(d.value),
         getElevation: (d) => d.value,

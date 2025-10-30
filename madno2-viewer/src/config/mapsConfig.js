@@ -4,7 +4,14 @@ export const MAPS_CONFIG = {
     id: 'madno2',
     name: 'Madrid NO2',
     description: 'Visualización de niveles de NO2 en Madrid',
-    dataBase: '/data/madno2024',
+    // Configuración de datos
+    dataSource: {
+      type: 'parquet', // 'csv' o 'parquet'
+      // Para CSV (legacy):
+      csvBase: '/data/madno2024',
+      // Para Parquet (nuevo):
+      parquetBase: 'https://datos1.geoso2.es/spain/madno/parquet',
+    },
     initialViewState: {
       longitude: -3.7038,
       latitude: 40.4168,
@@ -13,7 +20,7 @@ export const MAPS_CONFIG = {
       bearing: 0,
     },
     h3Resolution: 9,
-    defaultYear: 2024,
+    defaultYear: 2001,
     // Configuración de capas a mostrar
     layers: {
       h3Hexagons: true,

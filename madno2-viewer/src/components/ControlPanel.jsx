@@ -6,19 +6,24 @@ export function ControlPanel({ radius, setRadius, elevationScale, setElevationSc
     <div
       style={{
         position: 'absolute',
-        top: 80,
-        left: 10,
+        right: 10,
+        bottom: 10,
         zIndex: 10,
-        background: 'rgba(255,255,255,0.9)',
-        padding: '10px',
-        borderRadius: '6px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-        fontSize: '12px',
-        minWidth: '260px',
+        background: 'rgba(128, 128, 128, 0.7)',
+        backdropFilter: 'blur(4px)',
+        padding: '12px 16px',
+        borderRadius: '8px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+        fontSize: '13px',
+        minWidth: '320px',
+        width: '320px',
+        color: 'white',
       }}
     >
-      <div style={{ marginBottom: '8px' }}>
-        <label><strong>Radio (m)</strong> — máx {Math.round(RADIUS_METERS)}</label>
+      <div style={{ marginBottom: '12px' }}>
+        <label style={{ fontWeight: '600', display: 'block', marginBottom: '4px' }}>
+          Radio: {Math.round(radius)} m
+        </label>
         <input
           type="range"
           min={0}
@@ -28,11 +33,12 @@ export function ControlPanel({ radius, setRadius, elevationScale, setElevationSc
           onChange={(e) => setRadius(Number(e.target.value))}
           style={{ width: '100%' }}
         />
-        <div>{Math.round(radius)} m</div>
       </div>
 
-      <div style={{ marginBottom: '8px' }}>
-        <label><strong>Elevation scale</strong> — 0 a 20</label>
+      <div style={{ marginBottom: '12px' }}>
+        <label style={{ fontWeight: '600', display: 'block', marginBottom: '4px' }}>
+          Escala de elevación: {elevationScale}
+        </label>
         <input
           type="range"
           min={0}
@@ -42,11 +48,12 @@ export function ControlPanel({ radius, setRadius, elevationScale, setElevationSc
           onChange={(e) => setElevationScale(Number(e.target.value))}
           style={{ width: '100%' }}
         />
-        <div>{elevationScale}</div>
       </div>
 
       <div>
-        <label><strong>Transparencia</strong> — 0 (opaco) a 1 (transparente)</label>
+        <label style={{ fontWeight: '600', display: 'block', marginBottom: '4px' }}>
+          Opacidad: {opacity.toFixed(2)}
+        </label>
         <input
           type="range"
           min={0}
@@ -56,7 +63,6 @@ export function ControlPanel({ radius, setRadius, elevationScale, setElevationSc
           onChange={(e) => setOpacity(Number(e.target.value))}
           style={{ width: '100%' }}
         />
-        <div>{opacity.toFixed(2)}</div>
       </div>
     </div>
   );
