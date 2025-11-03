@@ -14,6 +14,7 @@ import { loadPopulationCSV, extractMunicipalityCode, calculateAllRanges } from '
 import { ControlPanel } from '../components/ControlPanel';
 import { MenuBar } from '../components/MenuBar';
 import { AnimationPanel } from '../components/AnimationPanel';
+import { AnalyticsPanel } from '../components/AnalyticsPanel';
 import { LegendSelector } from '../components/LegendSelector';
 import { PopulationInfoPanel } from '../components/PopulationInfoPanel';
 import { HexTooltip } from '../components/HexTooltip';
@@ -28,6 +29,10 @@ export function MapView() {
   const [elevationScale, setElevationScale] = useState(5);
   const [opacity, setOpacity] = useState(0.8);
   const [mapStyleId, setMapStyleId] = useState(DEFAULT_MAP_STYLE);
+  const [analyticsPanelOpen, setAnalyticsPanelOpen] = useState(false);
+  const [selectedHexId, setSelectedHexId] = useState(null); // Hexágono seleccionado para análisis
+  const [highlightedHexIds, setHighlightedHexIds] = useState([]); // Hexágonos resaltados para análisis espacial
+  const [spatialAnalysisParams, setSpatialAnalysisParams] = useState(null); // Parámetros del análisis espacial activo
 
   // Filtros de animación
   const [year, setYear] = useState(mapConfig?.defaultYear);
@@ -37,6 +42,7 @@ export function MapView() {
 
   // Secuencia y reproducción
   const [frames, setFrames] = useState([]);
+  const [spatialAnalysisData, setSpatialAnalysisData] = useState(null); // Datos del mapa para análisis espacial
 
   // Estado para datos GeoJSON
   const [geojsonData, setGeojsonData] = useState(null);
@@ -146,8 +152,38 @@ export function MapView() {
   const h3Data = dataSourceType === 'parquet' ? h3DataParquet : h3DataCsv;
 
   const { pickedHex, pointerPos, handleClick } = useHexPicker();
+
+  // Cargar datos para análisis espacial cuando se ejecuta
+  useEffect(() => {
+    if (!spatialAnalysisParams || !mapConfig?.dataSource?.parquetBase) {
+      setSpatialAnalysisData(null);
+      return;
+    }
+
+    const loadSpatialData = async () => {
+      try {
+        const ParquetDataManager = (await import('../utils/ParquetDataManager')).default;
+        const manager = ParquetDataManager.getInstance(mapConfig.dataSource.parquetBase);
+
+        const { year, month, day, hour } = spatialAnalysisParams;
+        const data = await manager.getSpatialMapData(year, month, day, hour);
+
+        setSpatialAnalysisData(data);
+        console.log('🗺️ Datos espaciales cargados:', data.length, 'hexágonos');
+      } catch (error) {
+        console.error('Error cargando datos espaciales:', error);
+        setSpatialAnalysisData(null);
+      }
+    };
+
+    loadSpatialData();
+  }, [spatialAnalysisParams, mapConfig]);
+
   // Solo usar datos si la capa H3 está activada
-  const data = layersConfig.h3Hexagons ? h3Data : [];
+  // Si hay análisis espacial activo, usar esos datos; si no, usar los de animación
+  const data = layersConfig.h3Hexagons
+    ? (spatialAnalysisData || h3Data)
+    : [];
 
   // Si no existe la configuración del mapa, mostrar error
   if (!mapConfig) {
@@ -197,7 +233,9 @@ export function MapView() {
     maxElevation: mapConfig.population?.maxElevation,
     visualizationMode,
     provinceConfig: mapConfig.provinceMode,
-    showTerrain
+    showTerrain,
+    selectedHexId,
+    highlightedHexIds
   });
 
   // Manejador de click mejorado para soportar GeoJSON y H3
@@ -215,8 +253,16 @@ export function MapView() {
           setSelectedMunicipality(popData);
         }
       }
+    } else if (info.layer?.id === 'h3-layer' && info.object) {
+      // Si es un hexágono H3, capturar su ID para análisis
+      const hexId = info.object.h3;
+      setSelectedHexId(hexId);
+      console.log('Hexágono seleccionado para análisis:', hexId);
+
+      // También llamar al manejador existente para el tooltip
+      handleClick(info);
     } else {
-      // Si no es GeoJSON, usar el manejador existente para H3
+      // Si no es GeoJSON ni H3, usar el manejador existente
       handleClick(info);
     }
   };
@@ -234,6 +280,17 @@ export function MapView() {
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+      {/* Panel de Análisis - Lado izquierdo */}
+      <AnalyticsPanel
+        isOpen={analyticsPanelOpen}
+        onToggle={() => setAnalyticsPanelOpen(!analyticsPanelOpen)}
+        parquetBaseUrl={mapConfig?.dataSource?.parquetBase}
+        selectedHexId={selectedHexId}
+        onClearHexId={() => setSelectedHexId(null)}
+        onHighlightHexagons={(hexIds) => setHighlightedHexIds(hexIds)}
+        onSpatialAnalysisExecute={(params) => setSpatialAnalysisParams(params)}
+      />
+
       {/* Barra de menú superior */}
       <MenuBar
         mapStyleId={mapStyleId}
@@ -282,7 +339,7 @@ export function MapView() {
         selectedYear={visualizationMode !== 'provincias' ? visualizationMode : null}
       />
 
-      {controls.animationPanel && (
+      {controls.animationPanel && !spatialAnalysisParams && (
         <AnimationPanel
           frames={frames}
           frameIdx={frameIdx}

@@ -15,6 +15,7 @@
     "@deck.gl/react": "^9.1.14",
     "@duckdb/duckdb-wasm": "^1.30.0",
     "apache-arrow": "^21.1.0",
+    "d3": "^7.9.0",
     "deck.gl": "^9.1.14",
     "h3-js": "^4.3.0",
     "mapbox-gl": "^3.14.0",

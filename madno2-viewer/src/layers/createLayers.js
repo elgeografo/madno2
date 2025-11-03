@@ -22,7 +22,9 @@ export function createLayers(data, {
   maxElevation,
   visualizationMode,
   provinceConfig,
-  showTerrain
+  showTerrain,
+  selectedHexId,
+  highlightedHexIds = []
 }) {
   const coverage = Math.max(0.05, Math.min(1, radius / RADIUS_METERS)); // 0..1
 
@@ -116,6 +118,61 @@ export function createLayers(data, {
         getElevation: (d) => d.value,
       })
     );
+
+    // Capa adicional para hexágonos resaltados (análisis espacial)
+    if (highlightedHexIds.length > 0) {
+      const highlightedHexData = data.filter(d => highlightedHexIds.includes(d.h3));
+
+      if (highlightedHexData.length > 0) {
+        result.push(
+          new H3HexagonLayer({
+            id: 'h3-highlighted-layer',
+            data: highlightedHexData,
+            pickable: true,
+            extruded: true,
+            opacity: 0.9,
+            coverage: coverage * 1.03,
+            elevationScale: elevationScale,
+            getHexagon: (d) => d.h3,
+            getFillColor: [255, 140, 0, 200], // Naranja brillante para múltiples hexágonos
+            getElevation: (d) => d.value * 1.3, // 30% más alto
+            stroked: true,
+            filled: true,
+            getLineColor: [255, 255, 255, 200], // Borde blanco semi-transparente
+            lineWidthMinPixels: 2,
+            lineWidthMaxPixels: 3,
+          })
+        );
+      }
+    }
+
+    // Capa adicional para el hexágono seleccionado (sobrepuesta con borde)
+    // Esta capa va después para que aparezca sobre los resaltados
+    if (selectedHexId) {
+      const selectedHexData = data.filter(d => d.h3 === selectedHexId);
+
+      if (selectedHexData.length > 0) {
+        result.push(
+          new H3HexagonLayer({
+            id: 'h3-selected-layer',
+            data: selectedHexData,
+            pickable: true,
+            extruded: true,
+            opacity: 1,
+            coverage: coverage * 1.05, // Ligeramente más grande
+            elevationScale: elevationScale,
+            getHexagon: (d) => d.h3,
+            getFillColor: [255, 255, 0, 220], // Amarillo brillante
+            getElevation: (d) => d.value * 1.5, // 50% más alto
+            stroked: true,
+            filled: true,
+            getLineColor: [255, 255, 255, 255], // Borde blanco
+            lineWidthMinPixels: 3,
+            lineWidthMaxPixels: 5,
+          })
+        );
+      }
+    }
   }
 
   // Añadir capa GeoJSON choropleth si está configurada
