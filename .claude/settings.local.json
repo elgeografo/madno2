@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(python scripts/05_from_csv_to_geoparquet.py:*)",
+      "Read(//Volumes/MV/carto/madno/parquet/year=2001/month=01/**)",
+      "Read(//Volumes/MV/carto/madno/parquet/**)",
+      "Bash(for year in /Users/luisizquierdo/repos/upm/madno2/madno2-viewer/public/data/parquet/year=*/)",
+      "Bash(ls:*)",
+      "Bash(done)",
+      "Bash(awk:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

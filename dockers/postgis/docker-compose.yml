@@ -1,0 +1,36 @@
+version: "3.3"
+
+services:
+  db:
+    build:
+      context: .
+      dockerfile: dockerfile        # <-- minúsculas según tu repo
+    container_name: pg-kartoza-h3
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: gh67yMn_kj
+    ports:
+      - "9061:5432"
+    volumes:
+      - /mnt/data/srv/madno2/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: gh67yMn_kj
+    ports:
+      - "9060:80"
+    volumes:
+      - /mnt/data/srv/madno2/pgadmin:/var/lib/pgadmin
+    depends_on:
+      - db                       # en v3.x de docker-compose, sin 'condition'
+    restart: always
