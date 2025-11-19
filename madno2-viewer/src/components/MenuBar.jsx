@@ -4,7 +4,7 @@ import { MAP_STYLES } from '../config/mapStyles';
 import { Geocoder } from './Geocoder';
 
 /**
- * Barra de menú superior con fondo semitransparente
+ * Top menu bar with semi-transparent background
  */
 export function MenuBar({ mapStyleId, setMapStyleId, showTerrain, setShowTerrain, onLocationSelected }) {
   return (
@@ -47,12 +47,12 @@ export function MenuBar({ mapStyleId, setMapStyleId, showTerrain, setShowTerrain
           e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
           e.currentTarget.style.transform = 'scale(1)';
         }}
-        title="Inicio"
+        title="Home"
       >
         🏠
       </Link>
 
-      {/* Selector de estilos de mapa */}
+      {/* Map style selector */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -68,7 +68,7 @@ export function MenuBar({ mapStyleId, setMapStyleId, showTerrain, setShowTerrain
           color: '#374151',
           whiteSpace: 'nowrap',
         }}>
-          Estilo de mapa:
+          Map style:
         </label>
         <select
           value={mapStyleId}
@@ -90,7 +90,7 @@ export function MenuBar({ mapStyleId, setMapStyleId, showTerrain, setShowTerrain
         </select>
       </div>
 
-      {/* Switch para mostrar relieve */}
+      {/* Terrain toggle switch */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -107,7 +107,7 @@ export function MenuBar({ mapStyleId, setMapStyleId, showTerrain, setShowTerrain
           whiteSpace: 'nowrap',
           cursor: 'pointer',
         }}>
-          Mostrar relieve
+          Show terrain
         </label>
         <label style={{
           position: 'relative',
@@ -148,7 +148,7 @@ export function MenuBar({ mapStyleId, setMapStyleId, showTerrain, setShowTerrain
         </label>
       </div>
 
-      {/* Geocodificador */}
+      {/* Geocoder */}
       <Geocoder onLocationSelected={onLocationSelected} />
     </div>
   );

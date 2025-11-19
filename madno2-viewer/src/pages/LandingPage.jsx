@@ -6,25 +6,25 @@ export function LandingPage() {
     {
       id: 'madno2',
       title: 'Madrid NO2',
-      description: 'Visualización de niveles de NO2 en Madrid durante 2024',
+      description: 'Visualization of NO2 levels in Madrid during 2024',
       path: '/map/madno2',
-      region: 'Madrid, España',
+      region: 'Madrid, Spain',
       status: 'active'
     },
     {
       id: 'alcarria',
       title: 'La Alcarria',
-      description: 'Visualización de datos en La Alcarria (zona de Pastrana)',
+      description: 'Data visualization in La Alcarria (Pastrana area)',
       path: '/map/alcarria',
       region: 'La Alcarria, Guadalajara',
       status: 'active'
     },
     {
       id: 'example',
-      title: 'Otra Región',
-      description: 'Próximamente: Visualización para otra región',
+      title: 'Other Region',
+      description: 'Coming soon: Visualization for another region',
       path: '/map/example',
-      region: 'Por definir',
+      region: 'To be defined',
       status: 'coming-soon'
     }
   ];
@@ -58,7 +58,7 @@ export function LandingPage() {
           maxWidth: '600px',
           margin: '0 auto'
         }}>
-          Plataforma de visualización geoespacial de datos medioambientales
+          Geospatial visualization platform for environmental data
         </p>
       </div>
 
@@ -96,7 +96,7 @@ export function LandingPage() {
                 fontSize: '0.75rem',
                 fontWeight: '600'
               }}>
-                Próximamente
+                Coming Soon
               </div>
             )}
 
@@ -145,7 +145,7 @@ export function LandingPage() {
                 onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
                 onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
               >
-                Acceder al mapa →
+                Access map →
               </Link>
             ) : (
               <button
@@ -161,7 +161,7 @@ export function LandingPage() {
                   cursor: 'not-allowed'
                 }}
               >
-                En desarrollo
+                In development
               </button>
             )}
           </div>
@@ -177,7 +177,7 @@ export function LandingPage() {
         opacity: 0.8,
         fontSize: '0.875rem'
       }}>
-        <p>Proyecto de visualización geoespacial de datos ambientales</p>
+        <p>Geospatial visualization project for environmental data</p>
         <p style={{ marginTop: '8px' }}>© 2024 - Universidad Politécnica de Madrid</p>
       </div>
     </div>

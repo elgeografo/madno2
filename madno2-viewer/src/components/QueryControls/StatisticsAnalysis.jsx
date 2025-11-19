@@ -7,7 +7,7 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
   const [analysisType, setAnalysisType] = useState('summary');
   const [year, setYear] = useState(2001);
   const [month, setMonth] = useState(1);
-  const [day, setDay] = useState(null); // null = todo el mes
+  const [day, setDay] = useState(null); // null = entire month
   const [showHelp, setShowHelp] = useState(false);
 
   const handleCalculate = async () => {
@@ -20,7 +20,7 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
 
       switch (analysisType) {
         case 'summary':
-          // Resumen estadístico completo
+          // Complete statistical summary
           const summaryResult = await manager.getStatisticsSummary(
             year, month, day, selectedHexId
           );
@@ -28,21 +28,21 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
           sqlQuery = summaryResult.sqlQuery;
 
           metadata = {
-            type: 'Resumen Estadístico',
+            type: 'Statistical Summary',
             year,
             month,
-            day: day || 'Todo el mes',
-            scope: selectedHexId ? `Hexágono ${selectedHexId}` : 'Toda la superficie',
+            day: day || 'Entire month',
+            scope: selectedHexId ? `Hexagon ${selectedHexId}` : 'Entire surface',
             sqlQuery: sqlQuery,
             parquetBaseUrl: parquetBaseUrl
           };
 
-          // Para resumen estadístico, mostraremos los datos como tabla
+          // For statistical summary, we will display the data as a table
           onExecute(data, 'summary', metadata);
           break;
 
         case 'compliance':
-          // Cumplimiento normativo
+          // Regulatory compliance
           const complianceResult = await manager.getStatisticsCompliance(
             year, month, day, selectedHexId
           );
@@ -50,11 +50,11 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
           sqlQuery = complianceResult.sqlQuery;
 
           metadata = {
-            type: 'Cumplimiento Normativo',
+            type: 'Regulatory Compliance',
             year,
             month,
-            day: day || 'Todo el mes',
-            scope: selectedHexId ? `Hexágono ${selectedHexId}` : 'Toda la superficie',
+            day: day || 'Entire month',
+            scope: selectedHexId ? `Hexagon ${selectedHexId}` : 'Entire surface',
             sqlQuery: sqlQuery,
             parquetBaseUrl: parquetBaseUrl
           };
@@ -66,8 +66,8 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
           break;
       }
     } catch (error) {
-      console.error('Error en análisis estadístico:', error);
-      alert('Error al calcular el análisis: ' + error.message);
+      console.error('Error in statistical analysis:', error);
+      alert('Error calculating analysis: ' + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -77,11 +77,11 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
 
   return (
     <div style={{ padding: '12px', fontSize: '13px' }}>
-      {/* Tipo de análisis con botón de ayuda */}
+      {/* Analysis type with help button */}
       <div style={{ marginBottom: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
           <label style={{ fontWeight: '600' }}>
-            Tipo de análisis
+            Analysis type
           </label>
           <button
             onClick={() => setShowHelp(true)}
@@ -105,7 +105,7 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'rgba(99, 102, 241, 0.15)';
             }}
-            title="Ver ayuda sobre este análisis"
+            title="View help about this analysis"
           >
             ?
           </button>
@@ -123,12 +123,12 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
             color: '#374151',
           }}
         >
-          <option value="summary">Resumen Estadístico</option>
-          <option value="compliance">Cumplimiento Normativo</option>
+          <option value="summary">Statistical Summary</option>
+          <option value="compliance">Regulatory Compliance</option>
         </select>
       </div>
 
-      {/* Hexágono seleccionado (si existe) */}
+      {/* Selected hexagon (if exists) */}
       {selectedHexId && (
         <div style={{
           marginBottom: '12px',
@@ -139,7 +139,7 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>
-              <strong>Hexágono:</strong> {selectedHexId.substring(0, 10)}...
+              <strong>Hexagon:</strong> {selectedHexId.substring(0, 10)}...
             </span>
             <button
               onClick={onClearHexId}
@@ -153,19 +153,19 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
                 fontSize: '11px',
               }}
             >
-              Limpiar
+              Clear
             </button>
           </div>
           <div style={{ marginTop: '4px', opacity: 0.7, fontSize: '11px' }}>
-            Análisis limitado a este hexágono
+            Analysis limited to this hexagon
           </div>
         </div>
       )}
 
-      {/* Año */}
+      {/* Year */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          Año
+          Year
         </label>
         <input
           type="number"
@@ -185,10 +185,10 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
         />
       </div>
 
-      {/* Mes */}
+      {/* Month */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          Mes
+          Month
         </label>
         <select
           value={month}
@@ -205,16 +205,16 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
         >
           {[...Array(12)].map((_, i) => (
             <option key={i + 1} value={i + 1}>
-              {new Date(2000, i, 1).toLocaleString('es-ES', { month: 'long' })}
+              {new Date(2000, i, 1).toLocaleString('en-US', { month: 'long' })}
             </option>
           ))}
         </select>
       </div>
 
-      {/* Día (opcional) */}
+      {/* Day (optional) */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          Día (opcional)
+          Day (optional)
         </label>
         <select
           value={day || ''}
@@ -229,7 +229,7 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
             color: '#374151',
           }}
         >
-          <option value="">Todo el mes</option>
+          <option value="">Entire month</option>
           {[...Array(31)].map((_, i) => (
             <option key={i + 1} value={i + 1}>
               {i + 1}
@@ -238,7 +238,7 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
         </select>
       </div>
 
-      {/* Información sobre el análisis */}
+      {/* Information about the analysis */}
       {analysisType === 'summary' && (
         <div style={{
           marginBottom: '12px',
@@ -248,7 +248,7 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
           fontSize: '11px',
           opacity: 0.8
         }}>
-          Mostrará estadísticas descriptivas: media, mediana, desviación estándar, percentiles, etc.
+          Will display descriptive statistics: mean, median, standard deviation, percentiles, etc.
         </div>
       )}
 
@@ -261,11 +261,11 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
           fontSize: '11px',
           opacity: 0.8
         }}>
-          Evaluará el cumplimiento de los límites de la UE: 40 µg/m³ (límite anual) y 200 µg/m³ (alerta)
+          Will evaluate compliance with EU limits: 40 µg/m³ (annual limit) and 200 µg/m³ (alert)
         </div>
       )}
 
-      {/* Botón calcular */}
+      {/* Calculate button */}
       <button
         onClick={handleCalculate}
         style={{
@@ -286,10 +286,10 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
           e.currentTarget.style.background = 'rgba(99, 102, 241, 0.9)';
         }}
       >
-        Calcular
+        Calculate
       </button>
 
-      {/* Modal de ayuda */}
+      {/* Help modal */}
       <HelpModal
         isOpen={showHelp}
         onClose={() => setShowHelp(false)}

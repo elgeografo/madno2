@@ -7,8 +7,8 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
   const [analysisType, setAnalysisType] = useState('peak_days');
   const [year, setYear] = useState(2001);
   const [month, setMonth] = useState(1);
-  const [day, setDay] = useState(null); // null = todo el mes
-  const [hour, setHour] = useState(null); // null = todas las horas
+  const [day, setDay] = useState(null); // null = entire month
+  const [hour, setHour] = useState(null); // null = all hours
   const [topN, setTopN] = useState(10);
   const [threshold, setThreshold] = useState(80); // µg/m³
   const [consecutiveDays, setConsecutiveDays] = useState(3);
@@ -26,7 +26,7 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
 
       switch (analysisType) {
         case 'peak_days':
-          // Top N días con mayor contaminación
+          // Top N days with highest pollution
           const peakResult = await manager.getExtremePeakDays(
             year, month, day, hour, topN, selectedHexId
           );
@@ -34,12 +34,12 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
           sqlQuery = peakResult.sqlQuery;
 
           metadata = {
-            type: `Top ${topN} días más contaminados`,
+            type: `Top ${topN} most polluted days`,
             year,
             month,
-            day: day || 'Todo el mes',
-            hour: hour !== null ? `${hour}:00` : 'Todas las horas',
-            scope: selectedHexId ? `Hexágono ${selectedHexId}` : 'Toda la superficie',
+            day: day || 'Entire month',
+            hour: hour !== null ? `${hour}:00` : 'All hours',
+            scope: selectedHexId ? `Hexagon ${selectedHexId}` : 'Entire surface',
             topN,
             sqlQuery: sqlQuery,
             parquetBaseUrl: parquetBaseUrl
@@ -49,7 +49,7 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
           break;
 
         case 'consecutive_days':
-          // Episodios de días consecutivos que superan umbral
+          // Episodes of consecutive days exceeding threshold
           const consecutiveResult = await manager.getExtremeConsecutiveDays(
             year, month, threshold, consecutiveDays, selectedHexId
           );
@@ -57,12 +57,12 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
           sqlQuery = consecutiveResult.sqlQuery;
 
           metadata = {
-            type: `Episodios de ${consecutiveDays}+ días consecutivos > ${threshold} µg/m³`,
+            type: `Episodes of ${consecutiveDays}+ consecutive days > ${threshold} µg/m³`,
             year,
             month,
             threshold,
             consecutiveDays,
-            scope: selectedHexId ? `Hexágono ${selectedHexId}` : 'Toda la superficie',
+            scope: selectedHexId ? `Hexagon ${selectedHexId}` : 'Entire surface',
             sqlQuery: sqlQuery,
             parquetBaseUrl: parquetBaseUrl
           };
@@ -71,7 +71,7 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
           break;
 
         case 'percentile':
-          // Días que superan un percentil específico
+          // Days that exceed a specific percentile
           const percentileResult = await manager.getExtremePercentile(
             year, month, day, hour, percentile, selectedHexId
           );
@@ -79,13 +79,13 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
           sqlQuery = percentileResult.sqlQuery;
 
           metadata = {
-            type: `Días que superan percentil ${percentile}`,
+            type: `Days exceeding percentile ${percentile}`,
             year,
             month,
-            day: day || 'Todo el mes',
-            hour: hour !== null ? `${hour}:00` : 'Todas las horas',
+            day: day || 'Entire month',
+            hour: hour !== null ? `${hour}:00` : 'All hours',
             percentile,
-            scope: selectedHexId ? `Hexágono ${selectedHexId}` : 'Toda la superficie',
+            scope: selectedHexId ? `Hexagon ${selectedHexId}` : 'Entire surface',
             sqlQuery: sqlQuery,
             parquetBaseUrl: parquetBaseUrl
           };
@@ -94,7 +94,7 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
           break;
 
         case 'duration':
-          // Días donde se superó el umbral durante N horas consecutivas
+          // Days where threshold was exceeded for N consecutive hours
           const durationResult = await manager.getExtremeDuration(
             year, month, threshold, consecutiveHours, selectedHexId
           );
@@ -102,12 +102,12 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
           sqlQuery = durationResult.sqlQuery;
 
           metadata = {
-            type: `Días con ${consecutiveHours}+ horas consecutivas > ${threshold} µg/m³`,
+            type: `Days with ${consecutiveHours}+ consecutive hours > ${threshold} µg/m³`,
             year,
             month,
             threshold,
             consecutiveHours,
-            scope: selectedHexId ? `Hexágono ${selectedHexId}` : 'Toda la superficie',
+            scope: selectedHexId ? `Hexagon ${selectedHexId}` : 'Entire surface',
             sqlQuery: sqlQuery,
             parquetBaseUrl: parquetBaseUrl
           };
@@ -119,8 +119,8 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
           break;
       }
     } catch (error) {
-      console.error('Error en análisis de eventos extremos:', error);
-      alert('Error al calcular el análisis: ' + error.message);
+      console.error('Error in extreme events analysis:', error);
+      alert('Error calculating analysis: ' + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -130,11 +130,11 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
 
   return (
     <div style={{ padding: '12px', fontSize: '13px' }}>
-      {/* Tipo de análisis con botón de ayuda */}
+      {/* Analysis type with help button */}
       <div style={{ marginBottom: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
           <label style={{ fontWeight: '600' }}>
-            Tipo de análisis
+            Analysis type
           </label>
           <button
             onClick={() => setShowHelp(true)}
@@ -158,7 +158,7 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'rgba(99, 102, 241, 0.15)';
             }}
-            title="Ver ayuda sobre este análisis"
+            title="View help about this analysis"
           >
             ?
           </button>
@@ -176,14 +176,14 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
             color: '#374151',
           }}
         >
-          <option value="peak_days">Días con mayor contaminación</option>
-          <option value="consecutive_days">Episodios consecutivos</option>
-          <option value="percentile">Análisis de percentiles</option>
-          <option value="duration">Duración de eventos</option>
+          <option value="peak_days">Days with highest pollution</option>
+          <option value="consecutive_days">Consecutive episodes</option>
+          <option value="percentile">Percentile analysis</option>
+          <option value="duration">Event duration</option>
         </select>
       </div>
 
-      {/* Hexágono seleccionado (si existe) */}
+      {/* Selected hexagon (if exists) */}
       {selectedHexId && (
         <div style={{
           marginBottom: '12px',
@@ -194,7 +194,7 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>
-              <strong>Hexágono:</strong> {selectedHexId.substring(0, 10)}...
+              <strong>Hexagon:</strong> {selectedHexId.substring(0, 10)}...
             </span>
             <button
               onClick={onClearHexId}
@@ -208,19 +208,19 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
                 fontSize: '11px',
               }}
             >
-              Limpiar
+              Clear
             </button>
           </div>
           <div style={{ marginTop: '4px', opacity: 0.7, fontSize: '11px' }}>
-            Análisis limitado a este hexágono
+            Analysis limited to this hexagon
           </div>
         </div>
       )}
 
-      {/* Año */}
+      {/* Year */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          Año
+          Year
         </label>
         <input
           type="number"
@@ -240,10 +240,10 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
         />
       </div>
 
-      {/* Mes */}
+      {/* Month */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          Mes
+          Month
         </label>
         <select
           value={month}
@@ -260,17 +260,17 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
         >
           {[...Array(12)].map((_, i) => (
             <option key={i + 1} value={i + 1}>
-              {new Date(2000, i, 1).toLocaleString('es-ES', { month: 'long' })}
+              {new Date(2000, i, 1).toLocaleString('en-US', { month: 'long' })}
             </option>
           ))}
         </select>
       </div>
 
-      {/* Día (opcional) - solo para peak_days y percentile */}
+      {/* Day (optional) - only for peak_days and percentile */}
       {(analysisType === 'peak_days' || analysisType === 'percentile') && (
         <div style={{ marginBottom: '12px' }}>
           <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-            Día (opcional)
+            Day (optional)
           </label>
           <select
             value={day || ''}
@@ -285,7 +285,7 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
               color: '#374151',
             }}
           >
-            <option value="">Todo el mes</option>
+            <option value="">Entire month</option>
             {[...Array(31)].map((_, i) => (
               <option key={i + 1} value={i + 1}>
                 {i + 1}
@@ -295,11 +295,11 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
         </div>
       )}
 
-      {/* Hora (opcional) - solo para peak_days y percentile */}
+      {/* Hour (optional) - only for peak_days and percentile */}
       {(analysisType === 'peak_days' || analysisType === 'percentile') && (
         <div style={{ marginBottom: '12px' }}>
           <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-            Hora (opcional)
+            Hour (optional)
           </label>
           <select
             value={hour !== null ? hour : ''}
@@ -314,7 +314,7 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
               color: '#374151',
             }}
           >
-            <option value="">Todas las horas</option>
+            <option value="">All hours</option>
             {[...Array(24)].map((_, i) => (
               <option key={i} value={i}>
                 {String(i).padStart(2, '0')}:00
@@ -324,11 +324,11 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
         </div>
       )}
 
-      {/* Top N (solo para peak_days) */}
+      {/* Top N (only for peak_days) */}
       {analysisType === 'peak_days' && (
         <div style={{ marginBottom: '12px' }}>
           <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-            Número de días (Top N)
+            Number of days (Top N)
           </label>
           <input
             type="number"
@@ -349,11 +349,11 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
         </div>
       )}
 
-      {/* Umbral (para consecutive_days y duration) */}
+      {/* Threshold (for consecutive_days and duration) */}
       {(analysisType === 'consecutive_days' || analysisType === 'duration') && (
         <div style={{ marginBottom: '12px' }}>
           <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-            Umbral (µg/m³)
+            Threshold (µg/m³)
           </label>
           <input
             type="number"
@@ -373,16 +373,16 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
             }}
           />
           <div style={{ fontSize: '11px', marginTop: '4px', opacity: 0.7 }}>
-            Referencia: 40 µg/m³ (límite anual UE), 200 µg/m³ (alerta horaria)
+            Reference: 40 µg/m³ (EU annual limit), 200 µg/m³ (hourly alert)
           </div>
         </div>
       )}
 
-      {/* Días consecutivos (solo para consecutive_days) */}
+      {/* Consecutive days (only for consecutive_days) */}
       {analysisType === 'consecutive_days' && (
         <div style={{ marginBottom: '12px' }}>
           <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-            Días consecutivos mínimos
+            Minimum consecutive days
           </label>
           <input
             type="number"
@@ -403,11 +403,11 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
         </div>
       )}
 
-      {/* Horas consecutivas (solo para duration) */}
+      {/* Consecutive hours (only for duration) */}
       {analysisType === 'duration' && (
         <div style={{ marginBottom: '12px' }}>
           <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-            Horas consecutivas mínimas
+            Minimum consecutive hours
           </label>
           <input
             type="number"
@@ -428,11 +428,11 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
         </div>
       )}
 
-      {/* Percentil (solo para percentile) */}
+      {/* Percentile (only for percentile) */}
       {analysisType === 'percentile' && (
         <div style={{ marginBottom: '12px' }}>
           <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-            Percentil
+            Percentile
           </label>
           <select
             value={percentile}
@@ -447,17 +447,17 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
               color: '#374151',
             }}
           >
-            <option value={90}>P90 (percentil 90)</option>
-            <option value={95}>P95 (percentil 95)</option>
-            <option value={99}>P99 (percentil 99)</option>
+            <option value={90}>P90 (90th percentile)</option>
+            <option value={95}>P95 (95th percentile)</option>
+            <option value={99}>P99 (99th percentile)</option>
           </select>
           <div style={{ fontSize: '11px', marginTop: '4px', opacity: 0.7 }}>
-            Identifica valores en la cola superior de la distribución
+            Identifies values in the upper tail of the distribution
           </div>
         </div>
       )}
 
-      {/* Botón calcular */}
+      {/* Calculate button */}
       <button
         onClick={handleCalculate}
         style={{
@@ -478,10 +478,10 @@ export function ExtremeEvents({ parquetBaseUrl, selectedHexId, onClearHexId, onE
           e.currentTarget.style.background = 'rgba(99, 102, 241, 0.9)';
         }}
       >
-        Calcular
+        Calculate
       </button>
 
-      {/* Modal de ayuda */}
+      {/* Help modal */}
       <HelpModal
         isOpen={showHelp}
         onClose={() => setShowHelp(false)}

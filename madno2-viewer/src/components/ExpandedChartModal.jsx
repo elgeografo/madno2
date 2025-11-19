@@ -16,10 +16,10 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
   useEffect(() => {
     if (!isOpen || !data || !chartType || !svgRef.current) return;
 
-    // Limpiar SVG anterior
+    // Clear previous SVG
     d3.select(svgRef.current).selectAll('*').remove();
 
-    // Renderizar con dimensiones más grandes y sin leyenda interna
+    // Render with larger dimensions and without internal legend
     const width = 900;
     const height = 600;
 
@@ -33,7 +33,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
     setLegendItems(seriesInfo || []);
   }, [isOpen, data, chartType]);
 
-  // Inicializar la query editable cuando cambia metadata
+  // Initialize editable query when metadata changes
   useEffect(() => {
     if (metadata?.sqlQuery) {
       setEditableQuery(metadata.sqlQuery);
@@ -48,7 +48,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
       const manager = ParquetDataManager.getInstance(metadata.parquetBaseUrl);
       const result = await manager.executeCustomQuery(editableQuery);
       setQueryResult(result);
-      setActiveTab('table'); // Cambiar a pestaña de tabla automáticamente
+      setActiveTab('table'); // Switch to table tab automatically
     } catch (error) {
       setQueryError(error.message);
     } finally {
@@ -59,18 +59,18 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
   const handleDownloadCSV = () => {
     if (!queryResult || queryResult.length === 0) return;
 
-    // Construir CSV
+    // Build CSV
     const headers = Object.keys(queryResult[0]);
     const csvRows = [];
 
-    // Agregar encabezados
+    // Add headers
     csvRows.push(headers.join(','));
 
-    // Agregar filas de datos
+    // Add data rows
     for (const row of queryResult) {
       const values = headers.map(header => {
         const value = row[header];
-        // Escapar valores que contienen comas, comillas o saltos de línea
+        // Escape values containing commas, quotes, or line breaks
         if (value === null || value === undefined) return '';
         const stringValue = String(value);
         if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
@@ -81,7 +81,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
       csvRows.push(values.join(','));
     }
 
-    // Crear blob y descargar
+    // Create blob and download
     const csvContent = csvRows.join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -97,17 +97,17 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
 
   if (!isOpen) return null;
 
-  // Construir título detallado a partir de metadata
+  // Build detailed title from metadata
   const getMonthName = (month) => {
-    if (!month) return 'Todos';
-    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    if (!month) return 'All';
+    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'];
     return months[month - 1];
   };
 
   const getDayNames = (weekdays) => {
-    if (!weekdays || weekdays.length === 0) return 'Todos';
-    const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    if (!weekdays || weekdays.length === 0) return 'All';
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     return weekdays.map(d => days[d]).join(', ');
   };
 
@@ -127,7 +127,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
         justifyContent: 'center',
       }}
     >
-      {/* Modal del gráfico */}
+      {/* Chart modal */}
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
@@ -142,7 +142,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
           border: '1px solid rgba(255,255,255,0.1)',
         }}
       >
-        {/* Header con título detallado y leyenda */}
+        {/* Header with detailed title and legend */}
         <div
           style={{
             marginBottom: '20px',
@@ -152,41 +152,41 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
             gap: '20px',
           }}
         >
-          {/* Título detallado (izquierda) */}
+          {/* Detailed title (left) */}
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: '18px', fontWeight: '600', color: 'white', lineHeight: '1.4' }}>
-              {metadata?.type || 'Análisis'}
+              {metadata?.type || 'Analysis'}
             </div>
             {metadata?.year && (
               <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.85)', marginTop: '4px' }}>
-                Año: {metadata.year}
+                Year: {metadata.year}
               </div>
             )}
             {metadata?.yearFrom && metadata?.yearTo && (
               <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.85)', marginTop: '4px' }}>
-                Años: {metadata.yearFrom} - {metadata.yearTo}
+                Years: {metadata.yearFrom} - {metadata.yearTo}
               </div>
             )}
             {metadata?.month !== undefined && (
               <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>
-                Mes: {getMonthName(metadata.month)}
+                Month: {getMonthName(metadata.month)}
               </div>
             )}
             {metadata?.weekdays !== undefined && (
               <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>
-                Días: {getDayNames(metadata.weekdays)}
+                Days: {getDayNames(metadata.weekdays)}
               </div>
             )}
             <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>
-              Hexágono: {metadata?.hexId ? (
+              Hexagon: {metadata?.hexId ? (
                 <span style={{ fontFamily: 'monospace', fontSize: '13px', background: 'rgba(255, 255, 0, 0.2)', padding: '2px 6px', borderRadius: '3px' }}>
                   {metadata.hexId}
                 </span>
-              ) : 'Todos'}
+              ) : 'All'}
             </div>
           </div>
 
-          {/* Leyenda (derecha) */}
+          {/* Legend (right) */}
           {legendItems.length > 0 && activeTab === 'chart' && (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {legendItems.map((item, i) => (
@@ -207,7 +207,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
             </div>
           )}
 
-          {/* Botón cerrar */}
+          {/* Close button */}
           <button
             onClick={onClose}
             style={{
@@ -227,7 +227,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
           </button>
         </div>
 
-        {/* Pestañas */}
+        {/* Tabs */}
         <div style={{ marginBottom: '16px', borderBottom: '2px solid rgba(255,255,255,0.1)' }}>
           <div style={{ display: 'flex', gap: '4px' }}>
             <button
@@ -245,7 +245,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
                 marginBottom: '-2px',
               }}
             >
-              📊 Gráfica
+              📊 Chart
             </button>
             <button
               onClick={() => setActiveTab('query')}
@@ -262,7 +262,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
                 marginBottom: '-2px',
               }}
             >
-              🔍 Query SQL
+              🔍 SQL Query
             </button>
             <button
               onClick={() => setActiveTab('table')}
@@ -279,12 +279,12 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
                 marginBottom: '-2px',
               }}
             >
-              📋 Tabla {queryResult && `(${queryResult.length} filas)`}
+              📋 Table {queryResult && `(${queryResult.length} rows)`}
             </button>
           </div>
         </div>
 
-        {/* Contenido de la pestaña "Gráfica" */}
+        {/* Chart tab content */}
         {activeTab === 'chart' && (
           <svg
             ref={svgRef}
@@ -296,7 +296,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
           />
         )}
 
-        {/* Contenido de la pestaña "Query" */}
+        {/* Query tab content */}
         {activeTab === 'query' && (
           <div style={{ height: '600px', display: 'flex', flexDirection: 'column' }}>
             <textarea
@@ -330,7 +330,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
                   cursor: isExecuting ? 'not-allowed' : 'pointer',
                 }}
               >
-                {isExecuting ? '⏳ Ejecutando...' : '▶️ Run'}
+                {isExecuting ? '⏳ Executing...' : '▶️ Run'}
               </button>
               {queryError && (
                 <div style={{ color: 'rgba(239, 68, 68, 1)', fontSize: '13px' }}>
@@ -341,7 +341,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
           </div>
         )}
 
-        {/* Contenido de la pestaña "Tabla" */}
+        {/* Table tab content */}
         {activeTab === 'table' && (
           <div style={{ height: '600px', display: 'flex', flexDirection: 'column' }}>
             {queryResult && (
@@ -365,7 +365,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
                     e.currentTarget.style.background = 'rgba(16, 185, 129, 0.9)';
                   }}
                 >
-                  📥 Descargar CSV
+                  📥 Download CSV
                 </button>
               </div>
             )}
@@ -417,7 +417,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
                   color: 'rgba(255,255,255,0.5)',
                   fontSize: '14px',
                 }}>
-                  Ejecuta una query desde la pestaña "Query SQL" para ver los resultados aquí
+                  Execute a query from the "SQL Query" tab to see results here
                 </div>
               )}
             </div>
@@ -427,6 +427,6 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
     </div>
   );
 
-  // Usar portal para renderizar en document.body
+  // Use portal to render in document.body
   return ReactDOM.createPortal(modalContent, document.body);
 }

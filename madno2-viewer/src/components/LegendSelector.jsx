@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * Selector de leyenda para visualización (provincias o años de población)
+ * Legend selector for visualization (provinces or population years)
  */
 export function LegendSelector({ selectedMode, setSelectedMode, modes }) {
   return (
@@ -19,7 +19,7 @@ export function LegendSelector({ selectedMode, setSelectedMode, modes }) {
       }}
     >
       <div style={{ marginBottom: '8px', fontWeight: 'bold', fontSize: '14px', color: '#1f2937' }}>
-        Visualización
+        Visualization
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {modes.map((mode) => (

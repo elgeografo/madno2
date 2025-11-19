@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { renderLineChartWithTooltip, renderBarChartWithTooltip } from '../utils/d3Renderers';
 import { ExpandedChartModal } from './ExpandedChartModal';
 
-// Componente para visualización de gráficos D3 con tooltips y zoom
+// Component for D3 chart visualization with tooltips and zoom
 export function D3Chart({ data, chartType, metadata, isLoading, onClear }) {
   const svgRef = useRef(null);
   const [showExpanded, setShowExpanded] = useState(false);
@@ -11,24 +11,24 @@ export function D3Chart({ data, chartType, metadata, isLoading, onClear }) {
   useEffect(() => {
     if (!data || !chartType || !svgRef.current) return;
 
-    console.log('🎨 D3Chart recibiendo datos:', {
+    console.log('🎨 D3Chart receiving data:', {
       type: chartType,
-      dataLength: Array.isArray(data) ? data.length : 'no es array',
+      dataLength: Array.isArray(data) ? data.length : 'not an array',
       firstItem: Array.isArray(data) ? data[0] : data,
       allData: data
     });
 
-    // Limpiar SVG anterior
+    // Clear previous SVG
     d3.select(svgRef.current).selectAll('*').remove();
 
-    // Renderizar según el tipo de gráfico
+    // Render based on chart type
     if (chartType === 'line') {
       renderLineChartWithTooltip(svgRef.current, data, 400, 250);
     } else if (chartType === 'bar') {
       renderBarChartWithTooltip(svgRef.current, data, 400, 250);
     } else if (chartType === 'summary') {
-      // Para summary, no renderizamos gráfico SVG, se mostrará como tabla HTML
-      // El SVG se oculta y la tabla se muestra en su lugar
+      // For summary, we don't render SVG chart, it will be shown as HTML table
+      // SVG is hidden and the table is shown instead
     }
   }, [data, chartType]);
 
@@ -45,7 +45,7 @@ export function D3Chart({ data, chartType, metadata, isLoading, onClear }) {
           flexDirection: 'column',
         }}
       >
-        {/* Header con título y botones */}
+        {/* Header with title and buttons */}
         <div
           style={{
             padding: '12px 16px',
@@ -56,7 +56,7 @@ export function D3Chart({ data, chartType, metadata, isLoading, onClear }) {
           }}
         >
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: 'white' }}>
-            {isLoading ? 'Cargando...' : hasData ? 'Visualización' : 'Sin datos'}
+            {isLoading ? 'Loading...' : hasData ? 'Visualization' : 'No data'}
           </h3>
           {hasData && (
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -78,9 +78,9 @@ export function D3Chart({ data, chartType, metadata, isLoading, onClear }) {
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'rgba(99, 102, 241, 0.2)';
                 }}
-                title="Ampliar gráfico"
+                title="Expand chart"
               >
-                🔍 Ampliar
+                🔍 Expand
               </button>
               <button
                 onClick={onClear}
@@ -101,13 +101,13 @@ export function D3Chart({ data, chartType, metadata, isLoading, onClear }) {
                   e.currentTarget.style.background = 'transparent';
                 }}
               >
-                Limpiar
+                Clear
               </button>
             </div>
           )}
         </div>
 
-        {/* Zona del gráfico */}
+        {/* Chart area */}
         <div
           style={{
             flex: 1,
@@ -120,11 +120,11 @@ export function D3Chart({ data, chartType, metadata, isLoading, onClear }) {
         >
           {isLoading ? (
             <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px' }}>
-              Procesando datos...
+              Processing data...
             </div>
           ) : hasData ? (
             chartType === 'summary' ? (
-              // Mostrar tabla para resumen estadístico
+              // Show table for statistical summary
               <div style={{ width: '100%', maxWidth: '500px' }}>
                 <table style={{
                   width: '100%',
@@ -159,7 +159,7 @@ export function D3Chart({ data, chartType, metadata, isLoading, onClear }) {
                 </table>
               </div>
             ) : (
-              // Mostrar SVG para gráficos
+              // Show SVG for charts
               <svg
                 ref={svgRef}
                 style={{
@@ -171,13 +171,13 @@ export function D3Chart({ data, chartType, metadata, isLoading, onClear }) {
             )
           ) : (
             <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', textAlign: 'center' }}>
-              Selecciona un análisis y presiona "Calcular"<br />para visualizar los resultados
+              Select an analysis and press "Calculate"<br />to visualize the results
             </div>
           )}
         </div>
       </div>
 
-      {/* Modal de gráfico ampliado */}
+      {/* Expanded chart modal */}
       <ExpandedChartModal
         isOpen={showExpanded}
         onClose={() => setShowExpanded(false)}

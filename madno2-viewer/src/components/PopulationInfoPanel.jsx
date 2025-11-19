@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * Panel de información de población que se muestra en la esquina inferior derecha
+ * Population information panel displayed in the lower right corner
  */
 export function PopulationInfoPanel({ municipalityName, populationData, availableYears, selectedYear }) {
   if (!municipalityName || !populationData) return null;
@@ -23,7 +23,7 @@ export function PopulationInfoPanel({ municipalityName, populationData, availabl
         fontSize: '13px',
       }}
     >
-      {/* Título con nombre del municipio */}
+      {/* Title with municipality name */}
       <div style={{
         fontWeight: 'bold',
         marginBottom: '8px',
@@ -33,13 +33,13 @@ export function PopulationInfoPanel({ municipalityName, populationData, availabl
         {municipalityName}
       </div>
 
-      {/* Tabla de evolución de población */}
+      {/* Population evolution table */}
       <div style={{
         fontSize: '13px',
         fontWeight: '600',
         marginBottom: '8px',
       }}>
-        Evolución de Población
+        Population Evolution
       </div>
 
       <table style={{
@@ -49,8 +49,8 @@ export function PopulationInfoPanel({ municipalityName, populationData, availabl
       }}>
         <thead>
           <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-            <th style={{ padding: '6px', textAlign: 'left', color: '#88ccff', fontWeight: '600' }}>Año</th>
-            <th style={{ padding: '6px', textAlign: 'right', color: '#88ccff', fontWeight: '600' }}>Población</th>
+            <th style={{ padding: '6px', textAlign: 'left', color: '#88ccff', fontWeight: '600' }}>Year</th>
+            <th style={{ padding: '6px', textAlign: 'right', color: '#88ccff', fontWeight: '600' }}>Population</th>
           </tr>
         </thead>
         <tbody>

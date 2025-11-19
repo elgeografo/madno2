@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 /**
- * Componente de geocodificación usando Nominatim (OpenStreetMap)
+ * Geocoding component using Nominatim (OpenStreetMap)
  */
 export function Geocoder({ onLocationSelected }) {
   const [searchText, setSearchText] = useState('');
@@ -18,7 +18,7 @@ export function Geocoder({ onLocationSelected }) {
     setIsSearching(true);
 
     try {
-      // API de Nominatim (OpenStreetMap) - servicio gratuito
+      // Nominatim API (OpenStreetMap) - free service
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?` +
         `q=${encodeURIComponent(query)}` +
@@ -28,7 +28,7 @@ export function Geocoder({ onLocationSelected }) {
         {
           headers: {
             'Accept': 'application/json',
-            // User-Agent requerido por Nominatim
+            // User-Agent required by Nominatim
             'User-Agent': 'madno2-viewer'
           }
         }
@@ -38,7 +38,7 @@ export function Geocoder({ onLocationSelected }) {
       setSuggestions(results);
       setShowSuggestions(true);
     } catch (error) {
-      console.error('Error al buscar ubicación:', error);
+      console.error('Error searching location:', error);
       setSuggestions([]);
     } finally {
       setIsSearching(false);
@@ -60,7 +60,7 @@ export function Geocoder({ onLocationSelected }) {
     setShowSuggestions(false);
     setSuggestions([]);
 
-    // Llamar al callback con las coordenadas
+    // Call callback with coordinates
     onLocationSelected({ latitude: lat, longitude: lon, zoom: 14 });
   };
 
@@ -82,7 +82,7 @@ export function Geocoder({ onLocationSelected }) {
           value={searchText}
           onChange={(e) => {
             setSearchText(e.target.value);
-            // Búsqueda automática mientras escribe
+            // Auto-search while typing
             if (e.target.value.length >= 3) {
               searchLocation(e.target.value);
             } else {
@@ -90,7 +90,7 @@ export function Geocoder({ onLocationSelected }) {
               setShowSuggestions(false);
             }
           }}
-          placeholder="Buscar dirección..."
+          placeholder="Search address..."
           style={{
             flex: 1,
             padding: '6px 10px',
@@ -115,11 +115,11 @@ export function Geocoder({ onLocationSelected }) {
             whiteSpace: 'nowrap',
           }}
         >
-          {isSearching ? '🔍' : '🔍 Buscar'}
+          {isSearching ? '🔍' : '🔍 Search'}
         </button>
       </form>
 
-      {/* Lista de sugerencias */}
+      {/* Suggestions list */}
       {showSuggestions && suggestions.length > 0 && (
         <div style={{
           position: 'absolute',

@@ -1,95 +1,95 @@
-// Contenido de ayuda para cada tipo de análisis temporal
+// Help content for each temporal analysis type
 
 export const ANALYSIS_HELP = {
   hourly: {
-    title: 'Análisis de Horas Pico',
-    description: 'Este análisis calcula el promedio, máximo y mínimo de concentración de NO₂ para cada hora del día (0-23 horas). Puedes analizar un mes específico o todo el año. Si no seleccionas días específicos, se mostrarán tres curvas (promedio, máximo, mínimo). Si seleccionas múltiples días de la semana, solo se mostrará el promedio de cada día para evitar saturar el gráfico. Permite identificar las horas con mayor contaminación, típicamente las horas de tráfico intenso (8-9 AM y 6-7 PM).',
-    sqlQuery: `-- Para un mes específico (con AVG, MAX, MIN):
+    title: 'Peak Hours Analysis',
+    description: 'This analysis calculates the average, maximum, and minimum NO₂ concentration for each hour of the day (0-23 hours). You can analyze a specific month or the entire year. If you don\'t select specific days, three curves will be displayed (average, maximum, minimum). If you select multiple weekdays, only the average for each day will be shown to avoid overcrowding the chart. This allows identification of hours with highest pollution, typically during heavy traffic hours (8-9 AM and 6-7 PM).',
+    sqlQuery: `-- For a specific month (with AVG, MAX, MIN):
 SELECT
   EXTRACT(hour FROM datetime) as hour,
   AVG(value) as avg_value,
   MAX(value) as max_value,
   MIN(value) as min_value
-FROM read_parquet('url_del_mes')
+FROM read_parquet('month_url')
 GROUP BY hour
 ORDER BY hour
 
--- Para todo el año (con AVG, MAX, MIN):
+-- For the entire year (with AVG, MAX, MIN):
 SELECT
   EXTRACT(hour FROM datetime) as hour,
   AVG(value) as avg_value,
   MAX(value) as max_value,
   MIN(value) as min_value
 FROM (
-  SELECT datetime, value FROM read_parquet('año/mes=01/**')
+  SELECT datetime, value FROM read_parquet('year/month=01/**')
   UNION ALL
-  SELECT datetime, value FROM read_parquet('año/mes=02/**')
-  -- ... hasta mes=12
+  SELECT datetime, value FROM read_parquet('year/month=02/**')
+  -- ... up to month=12
 )
 GROUP BY hour
 ORDER BY hour
 
--- Con múltiples días (solo promedio):
+-- With multiple days (average only):
 SELECT
   DAYOFWEEK(datetime) as dow,
   EXTRACT(hour FROM datetime) as hour,
   AVG(value) as avg_value
 FROM read_parquet('url')
-WHERE DAYOFWEEK(datetime) IN (1, 0) -- Lun, Dom
+WHERE DAYOFWEEK(datetime) IN (1, 0) -- Mon, Sun
 GROUP BY dow, hour
 ORDER BY dow, hour`,
-    example: 'Si seleccionas el año 2001 completo sin filtrar días, verás tres curvas: el promedio mostrará picos a las 8:00 y 19:00, el máximo mostrará los valores extremos registrados en esas horas, y el mínimo mostrará la variabilidad (útil para identificar si hay días con contaminación muy baja). Si seleccionas "Lunes" y "Domingo", verás dos curvas de promedio comparando ambos días.'
+    example: 'If you select the complete year 2001 without filtering days, you will see three curves: the average will show peaks at 8:00 and 19:00, the maximum will show the extreme values recorded at those hours, and the minimum will show variability (useful for identifying if there are days with very low pollution). If you select "Monday" and "Sunday", you will see two average curves comparing both days.'
   },
 
   seasonal: {
-    title: 'Análisis Estacional',
-    description: 'Agrupa todos los datos por estaciones del año (Primavera: Mar-May, Verano: Jun-Ago, Otoño: Sep-Nov, Invierno: Dic-Feb) y calcula el promedio de NO₂ para cada estación. Útil para identificar patrones climáticos y de consumo energético.',
+    title: 'Seasonal Analysis',
+    description: 'Groups all data by seasons of the year (Spring: Mar-May, Summer: Jun-Aug, Fall: Sep-Nov, Winter: Dec-Feb) and calculates the average NO₂ for each season. Useful for identifying climate and energy consumption patterns.',
     sqlQuery: `SELECT
   CASE
-    WHEN month IN (12, 1, 2) THEN 'Invierno'
-    WHEN month IN (3, 4, 5) THEN 'Primavera'
-    WHEN month IN (6, 7, 8) THEN 'Verano'
-    ELSE 'Otoño'
+    WHEN month IN (12, 1, 2) THEN 'Winter'
+    WHEN month IN (3, 4, 5) THEN 'Spring'
+    WHEN month IN (6, 7, 8) THEN 'Summer'
+    ELSE 'Fall'
   END as season,
   AVG(value) as avg_value
 FROM (
-  SELECT *, month FROM read_parquet('urls_múltiples')
+  SELECT *, month FROM read_parquet('multiple_urls')
 )
 GROUP BY season`,
-    example: 'Analizando 2001-2010, normalmente verás que el invierno tiene mayores niveles de NO₂ debido al uso de calefacción y las inversiones térmicas que atrapan contaminantes.'
+    example: 'Analyzing 2001-2010, you will typically see that winter has higher NO₂ levels due to heating usage and thermal inversions that trap pollutants.'
   },
 
   weekday: {
-    title: 'Análisis por Día de la Semana',
-    description: 'Calcula el promedio de NO₂ para cada día de la semana (Lunes a Domingo) en un mes específico. Revela diferencias entre días laborables (mayor tráfico vehicular) y fines de semana (menor actividad).',
+    title: 'Weekday Analysis',
+    description: 'Calculates the average NO₂ for each day of the week (Monday to Sunday) in a specific month. Reveals differences between weekdays (higher vehicular traffic) and weekends (lower activity).',
     sqlQuery: `SELECT
   DAYOFWEEK(datetime) as dow,
   AVG(value) as avg_value
-FROM read_parquet('url_del_mes')
+FROM read_parquet('month_url')
 GROUP BY dow
 ORDER BY dow`,
-    example: 'En enero de 2001, el gráfico típicamente mostrará valores más altos de lunes a viernes (actividad laboral) y valores notablemente más bajos en sábado y domingo.'
+    example: 'In January 2001, the chart will typically show higher values from Monday to Friday (work activity) and noticeably lower values on Saturday and Sunday.'
   },
 
   yearly: {
-    title: 'Evolución Anual',
-    description: 'Muestra la tendencia de los niveles promedio de NO₂ año tras año en un rango temporal seleccionado. Permite evaluar el impacto de políticas ambientales, cambios en el tráfico o eventos específicos (como Madrid Central en 2018 o el COVID-19 en 2020).',
+    title: 'Annual Evolution',
+    description: 'Shows the trend of average NO₂ levels year after year in a selected time range. Allows evaluation of the impact of environmental policies, traffic changes, or specific events (such as Madrid Central in 2018 or COVID-19 in 2020).',
     sqlQuery: `SELECT
   year,
   AVG(value) as avg_value
 FROM (
-  SELECT *, year FROM read_parquet('urls_múltiples')
+  SELECT *, year FROM read_parquet('multiple_urls')
 )
 GROUP BY year
 ORDER BY year`,
-    example: 'Comparando 2001-2010, podrías observar una tendencia decreciente debido a regulaciones más estrictas de emisiones vehiculares y mejoras tecnológicas en motores.'
+    example: 'Comparing 2001-2010, you could observe a decreasing trend due to stricter vehicle emission regulations and technological improvements in engines.'
   },
 
-  // ========== ANÁLISIS ESPACIAL ==========
+  // ========== SPATIAL ANALYSIS ==========
 
   hotspots: {
-    title: 'Hotspots - Zonas más contaminadas',
-    description: 'Identifica las N zonas (hexágonos H3) con las concentraciones promedio más altas de NO₂ en un periodo específico. Este análisis agrupa todos los valores de cada hexágono y calcula estadísticas (promedio, máximo, mínimo) para identificar los puntos críticos de contaminación. Útil para focalizar medidas de mejora de calidad del aire en las zonas más afectadas.',
+    title: 'Hotspots - Most Polluted Areas',
+    description: 'Identifies the N areas (H3 hexagons) with the highest average NO₂ concentrations in a specific period. This analysis groups all values from each hexagon and calculates statistics (average, maximum, minimum) to identify critical pollution points. Useful for focusing air quality improvement measures in the most affected areas.',
     sqlQuery: `SELECT
   h3_index,
   AVG(value) as avg_value,
@@ -97,38 +97,38 @@ ORDER BY year`,
   MIN(value) as min_value,
   COUNT(*) as count
 FROM read_parquet('year=2001/month=01/data.parquet')
--- Filtros opcionales:
+-- Optional filters:
 -- WHERE EXTRACT(day FROM datetime) = 15
 -- AND EXTRACT(hour FROM datetime) = 8
 GROUP BY h3_index
 ORDER BY avg_value DESC
 LIMIT 10`,
-    example: 'Si analizas enero de 2001 a las 8:00 AM (hora pico de tráfico), los resultados mostrarán los 10 hexágonos más contaminados, típicamente localizados en avenidas principales como M-30, Gran Vía o Paseo de la Castellana. El gráfico de barras permite comparar visualmente la intensidad entre estas zonas, y los hexágonos se resaltan en naranja en el mapa para una identificación espacial inmediata.'
+    example: 'If you analyze January 2001 at 8:00 AM (peak traffic hour), the results will show the 10 most polluted hexagons, typically located on main avenues such as M-30, Gran Vía, or Paseo de la Castellana. The bar chart allows visual comparison of intensity between these areas, and the hexagons are highlighted in orange on the map for immediate spatial identification.'
   },
 
   threshold: {
-    title: 'Superar Umbral - Zonas por encima del límite',
-    description: 'Encuentra todos los hexágonos que superan un umbral específico de concentración de NO₂. Este análisis es fundamental para cumplimiento normativo y salud pública. La Unión Europea establece 40 µg/m³ como límite anual y 200 µg/m³ como umbral de alerta horaria. Permite identificar rápidamente todas las áreas que exceden estos límites legales.',
+    title: 'Threshold Exceedance - Areas Above Limit',
+    description: 'Finds all hexagons that exceed a specific NO₂ concentration threshold. This analysis is fundamental for regulatory compliance and public health. The European Union establishes 40 µg/m³ as the annual limit and 200 µg/m³ as the hourly alert threshold. Allows quick identification of all areas exceeding these legal limits.',
     sqlQuery: `SELECT
   h3_index,
   AVG(value) as avg_value,
   MAX(value) as max_value,
   COUNT(*) as exceedances
 FROM read_parquet('year=2001/month=01/data.parquet')
--- Filtros opcionales:
+-- Optional filters:
 -- WHERE EXTRACT(day FROM datetime) = 15
 -- AND EXTRACT(hour FROM datetime) = 19
 GROUP BY h3_index
 HAVING AVG(value) > 80
 ORDER BY avg_value DESC`,
-    example: 'Si estableces un umbral de 80 µg/m³ para enero de 2001 a las 19:00 (hora pico vespertina), el análisis devolverá todas las zonas que superan este límite. Por ejemplo, podrías encontrar 25 hexágonos en violación, concentrados principalmente en el centro urbano y ejes viarios principales. El número de excedencias (count) te indica cuántas mediciones de ese hexágono superaron el umbral, ayudando a identificar si es un problema puntual o persistente.'
+    example: 'If you set a threshold of 80 µg/m³ for January 2001 at 19:00 (evening peak hour), the analysis will return all areas exceeding this limit. For example, you might find 25 hexagons in violation, concentrated mainly in the urban center and main road axes. The number of exceedances (count) indicates how many measurements from that hexagon exceeded the threshold, helping to identify if it is a specific or persistent problem.'
   },
 
-  // ========== ANÁLISIS DE EVENTOS EXTREMOS ==========
+  // ========== EXTREME EVENT ANALYSIS ==========
 
   peak_days: {
-    title: 'Días con Mayor Contaminación',
-    description: 'Identifica los N días con las concentraciones promedio más altas de NO₂ en un periodo determinado. Este análisis es crucial para identificar días críticos de contaminación que pueden requerir activación de protocolos anti-contaminación. Puede aplicarse a toda la superficie de Madrid o a un hexágono específico si seleccionas uno en el mapa.',
+    title: 'Days with Highest Pollution',
+    description: 'Identifies the N days with the highest average NO₂ concentrations in a given period. This analysis is crucial for identifying critical pollution days that may require activation of anti-pollution protocols. Can be applied to the entire Madrid area or to a specific hexagon if you select one on the map.',
     sqlQuery: `SELECT
   EXTRACT(day FROM datetime) as day,
   AVG(value) as avg_value,
@@ -136,18 +136,18 @@ ORDER BY avg_value DESC`,
   MIN(value) as min_value,
   COUNT(*) as count
 FROM read_parquet('year=2001/month=01/data.parquet')
--- Filtros opcionales:
+-- Optional filters:
 -- WHERE EXTRACT(hour FROM datetime) = 8
 -- AND h3_index = '89390ca0083ffff'
 GROUP BY day
 ORDER BY avg_value DESC
 LIMIT 10`,
-    example: 'Si analizas enero de 2001 a las 8:00 AM (hora pico matutina), el análisis mostrará los 10 días con mayor contaminación. Por ejemplo, podrías encontrar que los días 15, 18 y 22 tuvieron los mayores niveles, probablemente debido a condiciones meteorológicas adversas (inversión térmica) que atrapan contaminantes cerca del suelo. El gráfico muestra barras de promedio con líneas de máximos y mínimos para ver la variabilidad.'
+    example: 'If you analyze January 2001 at 8:00 AM (morning peak hour), the analysis will show the 10 days with highest pollution. For example, you might find that days 15, 18, and 22 had the highest levels, probably due to adverse meteorological conditions (thermal inversion) that trap pollutants near the ground. The chart shows average bars with maximum and minimum lines to see variability.'
   },
 
   consecutive_days: {
-    title: 'Episodios Consecutivos',
-    description: 'Encuentra periodos de días consecutivos donde el promedio de NO₂ superó un umbral específico. Este análisis es fundamental para identificar episodios de contaminación prolongada que tienen mayor impacto en la salud pública. Los episodios de varios días consecutivos son especialmente preocupantes según la normativa de calidad del aire.',
+    title: 'Consecutive Episodes',
+    description: 'Finds periods of consecutive days where the average NO₂ exceeded a specific threshold. This analysis is fundamental for identifying prolonged pollution episodes that have greater impact on public health. Episodes of several consecutive days are especially concerning according to air quality regulations.',
     sqlQuery: `WITH daily_avg AS (
   SELECT
     EXTRACT(day FROM datetime) as day,
@@ -167,12 +167,12 @@ SELECT
   min_value,
   day - ROW_NUMBER() OVER (ORDER BY day) as grp
 FROM daily_avg`,
-    example: 'Si buscas episodios de 3+ días consecutivos que superaron 80 µg/m³ en enero de 2001, podrías encontrar 2 episodios: Episodio 1 del 5 al 8 de enero (4 días) con promedio de 95 µg/m³, y Episodio 2 del 20 al 22 (3 días) con promedio de 88 µg/m³. Estos episodios prolongados son los que más preocupan a las autoridades sanitarias.'
+    example: 'If you search for episodes of 3+ consecutive days that exceeded 80 µg/m³ in January 2001, you might find 2 episodes: Episode 1 from January 5 to 8 (4 days) with an average of 95 µg/m³, and Episode 2 from the 20th to 22nd (3 days) with an average of 88 µg/m³. These prolonged episodes are what concern health authorities most.'
   },
 
   percentile: {
-    title: 'Análisis de Percentiles',
-    description: 'Identifica días que superan un percentil específico (P90, P95, P99) de la distribución de valores. Este análisis estadístico permite identificar eventos extremos basándose en la distribución histórica de datos, en lugar de usar umbrales fijos. Es útil para detectar días anómalos comparados con el comportamiento típico del periodo.',
+    title: 'Percentile Analysis',
+    description: 'Identifies days that exceed a specific percentile (P90, P95, P99) of the value distribution. This statistical analysis allows identification of extreme events based on the historical data distribution, instead of using fixed thresholds. It is useful for detecting anomalous days compared to the typical behavior of the period.',
     sqlQuery: `WITH daily_stats AS (
   SELECT
     EXTRACT(day FROM datetime) as day,
@@ -198,12 +198,12 @@ FROM daily_stats ds
 CROSS JOIN percentile_threshold pt
 WHERE ds.avg_value >= pt.p_value
 ORDER BY ds.avg_value DESC`,
-    example: 'Si calculas el percentil 95 para enero de 2001, encontrarás los días que están en el 5% superior de contaminación del mes. Por ejemplo, si el P95 es 85 µg/m³, verás solo los días que superaron ese valor. Esto te muestra los días verdaderamente excepcionales del mes, independientemente de umbrales normativos fijos.'
+    example: 'If you calculate the 95th percentile for January 2001, you will find the days that are in the top 5% of pollution for the month. For example, if P95 is 85 µg/m³, you will see only the days that exceeded that value. This shows you the truly exceptional days of the month, regardless of fixed regulatory thresholds.'
   },
 
   duration: {
-    title: 'Duración de Eventos',
-    description: 'Encuentra días donde se superó un umbral de NO₂ durante un número mínimo de horas consecutivas. Este análisis es crítico para cumplimiento normativo, ya que la UE establece que no se debe superar 200 µg/m³ durante más de 18 horas al año. Identifica días con exposición prolongada a niveles elevados de contaminación.',
+    title: 'Event Duration',
+    description: 'Finds days where a NO₂ threshold was exceeded for a minimum number of consecutive hours. This analysis is critical for regulatory compliance, as the EU establishes that 200 µg/m³ should not be exceeded for more than 18 hours per year. Identifies days with prolonged exposure to elevated pollution levels.',
     sqlQuery: `WITH hourly_data AS (
   SELECT
     EXTRACT(day FROM datetime) as day,
@@ -243,14 +243,14 @@ SELECT
 FROM daily_episodes
 GROUP BY day
 ORDER BY max_consecutive_hours DESC`,
-    example: 'Si buscas días con 8+ horas consecutivas por encima de 80 µg/m³ en enero de 2001, podrías encontrar 5 días críticos. Por ejemplo, el día 15 tuvo 12 horas consecutivas superando el umbral, desde las 7:00 hasta las 19:00, indicando un día completo de alta contaminación sin respiro. Estos días requieren atención especial y posible activación de protocolos.'
+    example: 'If you search for days with 8+ consecutive hours above 80 µg/m³ in January 2001, you might find 5 critical days. For example, day 15 had 12 consecutive hours exceeding the threshold, from 7:00 to 19:00, indicating a full day of high pollution without relief. These days require special attention and possible protocol activation.'
   },
 
-  // ========== ANÁLISIS COMPARATIVOS ==========
+  // ========== COMPARATIVE ANALYSIS ==========
 
   comparative_years: {
-    title: 'Comparación entre Años',
-    description: 'Compara el patrón horario (24 horas) de NO₂ entre dos años diferentes para el mismo mes y día. Este análisis es fundamental para evaluar la evolución temporal de la contaminación y el impacto de políticas ambientales. Permite comparar cualquier año desde 2001 hasta la actualidad, identificando mejoras o empeoramientos en la calidad del aire. Puedes analizar toda la superficie de Madrid o limitarlo a un hexágono específico.',
+    title: 'Year Comparison',
+    description: 'Compares the hourly pattern (24 hours) of NO₂ between two different years for the same month and day. This analysis is fundamental for evaluating the temporal evolution of pollution and the impact of environmental policies. Allows comparison of any year from 2001 to present, identifying improvements or deteriorations in air quality. You can analyze the entire Madrid area or limit it to a specific hexagon.',
     sqlQuery: `WITH year1_data AS (
   SELECT
     EXTRACT(hour FROM datetime) as hour,
@@ -282,23 +282,23 @@ SELECT
 FROM year1_data y1
 FULL OUTER JOIN year2_data y2 ON y1.hour = y2.hour
 ORDER BY hour`,
-    example: 'Si comparas enero de 2001 vs enero de 2020 (sin seleccionar día específico), el gráfico mostrará dos líneas representando el promedio horario de todo el mes para cada año. Por ejemplo, podrías observar que en 2001 los picos de contaminación eran de 120 µg/m³ a las 8:00 y 19:00, mientras que en 2020 esos mismos picos se redujeron a 70 µg/m³, evidenciando el impacto positivo de las políticas de Madrid Central y la renovación del parque automovilístico. Si seleccionas el día 15 de enero, compararías exactamente ese mismo día en ambos años, mostrando diferencias más específicas.'
+    example: 'If you compare January 2001 vs January 2020 (without selecting a specific day), the chart will show two lines representing the hourly average of the entire month for each year. For example, you might observe that in 2001 pollution peaks were 120 µg/m³ at 8:00 and 19:00, while in 2020 those same peaks were reduced to 70 µg/m³, evidencing the positive impact of Madrid Central policies and vehicle fleet renewal. If you select the 15th of January, you would compare exactly that same day in both years, showing more specific differences.'
   },
 
-  // ========== ESTADÍSTICAS ==========
+  // ========== STATISTICS ==========
 
   summary: {
-    title: 'Resumen Estadístico',
-    description: 'Calcula estadísticas descriptivas completas de un periodo determinado, incluyendo medidas de tendencia central (media, mediana), dispersión (desviación estándar, varianza, rango) y percentiles clave. Este análisis proporciona una visión cuantitativa completa de la distribución de valores de NO₂, permitiendo entender la variabilidad y características típicas de la contaminación en el periodo analizado.',
+    title: 'Statistical Summary',
+    description: 'Calculates complete descriptive statistics for a given period, including measures of central tendency (mean, median), dispersion (standard deviation, variance, range), and key percentiles. This analysis provides a complete quantitative view of the NO₂ value distribution, allowing understanding of variability and typical characteristics of pollution in the analyzed period.',
     sqlQuery: `SELECT
-  COUNT(*) as total_registros,
-  AVG(value) as media,
-  PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as mediana,
-  STDDEV(value) as desviacion_estandar,
-  VARIANCE(value) as varianza,
-  MIN(value) as minimo,
-  MAX(value) as maximo,
-  MAX(value) - MIN(value) as rango,
+  COUNT(*) as total_records,
+  AVG(value) as mean,
+  PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median,
+  STDDEV(value) as standard_deviation,
+  VARIANCE(value) as variance,
+  MIN(value) as minimum,
+  MAX(value) as maximum,
+  MAX(value) - MIN(value) as range,
   PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY value) as p25,
   PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY value) as p50,
   PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY value) as p75,
@@ -308,33 +308,33 @@ ORDER BY hour`,
 FROM read_parquet('year=2001/month=01/data.parquet')
 -- WHERE EXTRACT(day FROM datetime) = 15
 -- AND h3_index = '89390ca0083ffff'`,
-    example: 'Si calculas el resumen estadístico de enero 2001 para toda Madrid, podrías obtener: Media 65 µg/m³, Mediana 58 µg/m³, Desv. Est. 25 µg/m³, Mín 5 µg/m³, Máx 250 µg/m³, P95 105 µg/m³. La diferencia entre media y mediana indica asimetría positiva (valores extremos altos ocasionales). El P95 de 105 µg/m³ te dice que el 95% del tiempo la contaminación estuvo por debajo de ese valor. Una desviación estándar alta (25) indica gran variabilidad día a día y hora a hora.'
+    example: 'If you calculate the statistical summary of January 2001 for all of Madrid, you might get: Mean 65 µg/m³, Median 58 µg/m³, Std. Dev. 25 µg/m³, Min 5 µg/m³, Max 250 µg/m³, P95 105 µg/m³. The difference between mean and median indicates positive asymmetry (occasional high extreme values). P95 of 105 µg/m³ tells you that 95% of the time pollution was below that value. A high standard deviation (25) indicates great variability day to day and hour to hour.'
   },
 
   compliance: {
-    title: 'Cumplimiento Normativo',
-    description: 'Evalúa el cumplimiento de los límites establecidos por la Unión Europea para NO₂. La normativa europea establece 40 µg/m³ como valor límite anual para protección de la salud humana, y 200 µg/m³ como umbral de alerta para exposiciones de corta duración. Este análisis clasifica todas las mediciones en tres categorías: Cumple (≤40), Aceptable (40-200), y Alerta (>200), mostrando el porcentaje de tiempo en cada categoría.',
+    title: 'Regulatory Compliance',
+    description: 'Evaluates compliance with limits established by the European Union for NO₂. European regulations establish 40 µg/m³ as the annual limit value for human health protection, and 200 µg/m³ as the alert threshold for short-term exposures. This analysis classifies all measurements into three categories: Compliant (≤40), Acceptable (40-200), and Alert (>200), showing the percentage of time in each category.',
     sqlQuery: `WITH stats AS (
   SELECT
     COUNT(*) as total,
-    SUM(CASE WHEN value <= 40 THEN 1 ELSE 0 END) as cumple_40,
-    SUM(CASE WHEN value > 40 AND value <= 200 THEN 1 ELSE 0 END) as entre_40_200,
-    SUM(CASE WHEN value > 200 THEN 1 ELSE 0 END) as supera_200,
-    AVG(value) as promedio
+    SUM(CASE WHEN value <= 40 THEN 1 ELSE 0 END) as compliant_40,
+    SUM(CASE WHEN value > 40 AND value <= 200 THEN 1 ELSE 0 END) as between_40_200,
+    SUM(CASE WHEN value > 200 THEN 1 ELSE 0 END) as exceeds_200,
+    AVG(value) as average
   FROM read_parquet('year=2001/month=01/data.parquet')
   -- WHERE EXTRACT(day FROM datetime) = 15
   -- AND h3_index = '89390ca0083ffff'
 )
 SELECT
-  cumple_40,
-  entre_40_200,
-  supera_200,
+  compliant_40,
+  between_40_200,
+  exceeds_200,
   total,
-  promedio,
-  CAST(cumple_40 AS DOUBLE) / total * 100 as pct_cumple_40,
-  CAST(entre_40_200 AS DOUBLE) / total * 100 as pct_entre_40_200,
-  CAST(supera_200 AS DOUBLE) / total * 100 as pct_supera_200
+  average,
+  CAST(compliant_40 AS DOUBLE) / total * 100 as pct_compliant_40,
+  CAST(between_40_200 AS DOUBLE) / total * 100 as pct_between_40_200,
+  CAST(exceeds_200 AS DOUBLE) / total * 100 as pct_exceeds_200
 FROM stats`,
-    example: 'Si analizas enero 2001 en toda Madrid, podrías encontrar: 25% cumple (≤40 µg/m³), 72% aceptable (40-200 µg/m³), 3% alerta (>200 µg/m³). Esto significa que solo el 25% del tiempo se cumplió el límite anual de la UE, el 72% estuvo en niveles elevados pero no críticos, y un preocupante 3% del tiempo se superó el umbral de alerta. Si analizas un hexágono específico en una vía principal, el porcentaje en alerta podría ser significativamente mayor, indicando zona problemática que requiere intervención.'
+    example: 'If you analyze January 2001 in all of Madrid, you might find: 25% compliant (≤40 µg/m³), 72% acceptable (40-200 µg/m³), 3% alert (>200 µg/m³). This means that only 25% of the time the EU annual limit was met, 72% was at elevated but not critical levels, and a concerning 3% of the time the alert threshold was exceeded. If you analyze a specific hexagon on a main road, the alert percentage could be significantly higher, indicating a problematic area requiring intervention.'
   }
 };

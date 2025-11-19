@@ -22,7 +22,7 @@ export function ControlPanel({ radius, setRadius, elevationScale, setElevationSc
     >
       <div style={{ marginBottom: '12px' }}>
         <label style={{ fontWeight: '600', display: 'block', marginBottom: '4px' }}>
-          Radio: {Math.round(radius)} m
+          Radius: {Math.round(radius)} m
         </label>
         <input
           type="range"
@@ -37,7 +37,7 @@ export function ControlPanel({ radius, setRadius, elevationScale, setElevationSc
 
       <div style={{ marginBottom: '12px' }}>
         <label style={{ fontWeight: '600', display: 'block', marginBottom: '4px' }}>
-          Escala de elevación: {elevationScale}
+          Elevation scale: {elevationScale}
         </label>
         <input
           type="range"
@@ -52,7 +52,7 @@ export function ControlPanel({ radius, setRadius, elevationScale, setElevationSc
 
       <div>
         <label style={{ fontWeight: '600', display: 'block', marginBottom: '4px' }}>
-          Opacidad: {opacity.toFixed(2)}
+          Opacity: {opacity.toFixed(2)}
         </label>
         <input
           type="range"
