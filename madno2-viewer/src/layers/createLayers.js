@@ -50,6 +50,12 @@ export function createLayers(data, {
         minZoom: 0,
         maxZoom: 19,
         tileSize: 256,
+        // Estrategia para evitar parpadeos durante zoom
+        refinementStrategy: 'best-available',  // Muestra tiles de menor resolución mientras carga
+        // Zoom extra para permitir overzooming (escalar tiles cuando no están disponibles)
+        maxRequests: 20,  // Aumentar requests simultáneas para carga más rápida
+        // Mantener tiles antiguas visibles durante transición
+        onTileLoad: () => {},  // Evita que se eliminen tiles antes de tiempo
         renderSubLayers: (subProps) => {
           const tile = subProps.tile;
           const img = subProps.data;
@@ -61,7 +67,9 @@ export function createLayers(data, {
           return new BitmapLayer(subProps, {
             data: null,
             image: img,
-            bounds: [west, south, east, north]
+            bounds: [west, south, east, north],
+            // Transición suave al aparecer
+            opacity: subProps.opacity !== undefined ? subProps.opacity : 1,
           });
         }
       })

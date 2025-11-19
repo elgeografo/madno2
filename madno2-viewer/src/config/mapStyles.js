@@ -41,6 +41,18 @@ export const MAP_STYLES = {
     name: 'Orografía',
     url: 'https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}.png',
     attribution: '© Stamen Design, © OpenStreetMap contributors'
+  },
+  ESRI_TOPO: {
+    id: 'esri-topo',
+    name: 'Topográfico (curvas nivel)',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+    attribution: '© Esri, HERE, Garmin, Intermap, INCREMENT P, GEBCO, USGS, FAO, NPS, NRCAN, GeoBase, IGN, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), © OpenStreetMap contributors, GIS User Community'
+  },
+  OPEN_TOPO: {
+    id: 'open-topo',
+    name: 'OpenTopoMap (curvas marcadas)',
+    url: 'https://a.tile.opentopomap.org/{z}/{x}/{y}.png',
+    attribution: '© OpenStreetMap contributors, © OpenTopoMap (CC-BY-SA)'
   }
 };
 
