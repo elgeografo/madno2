@@ -2,13 +2,8 @@ from functions_03_convexhull import *
 import argparse
 import os
 import geopandas as gpd
-from scipy.interpolate import RBFInterpolator
-
-# --- Parámetros de configuración (ajústalos desde aquí) ---
-# Interpolación RBF (extrapola y rellena todo el BBOX)
-RBF_KERNEL = 'thin_plate_spline'   # opciones: 'multiquadric', 'gaussian', 'linear', 'cubic', 'quintic'
-RBF_SMOOTHING = 0.0                # aumenta (p.ej. 0.3–1.0) si el campo es ruidoso
-RBF_NEIGHBORS = None               # p.ej. 25 para acelerar con muchos puntos (aprox. local)
+from pykrige.ok import OrdinaryKriging
+import logging
 
 # Tratamiento de puntos en el borde del BBOX
 INCLUDE_EDGE_POINTS = True  # True: incluye estaciones justo en el borde del BBOX
@@ -34,7 +29,7 @@ def main(args):
             print("No data found for the specified parameters. Exiting.")
             return
 
-        print(f"Found {len(df)} station values.")
+        logging.info(f"Found {len(df)} station values.")
 
         # --- Filter by BBOX ---
         bbox_poly_wgs84 = Polygon(BBOX_WGS84_COORDS)
@@ -52,13 +47,7 @@ def main(args):
         xs, ys = wgs84_to_3857.transform(gdf['lon'].values, gdf['lat'].values)
         zs = gdf['z'].values
 
-        rbf = RBFInterpolator(
-            np.column_stack([xs, ys]),
-            zs,
-            kernel=RBF_KERNEL,
-            smoothing=RBF_SMOOTHING,
-            neighbors=RBF_NEIGHBORS,
-        )
+        ok = OrdinaryKriging(xs, ys, zs, variogram_model='linear')
 
         # --- Build H3 cells within convex hull of stations ---
         clip_poly_wgs84 = make_clip_polygon_convex(gdf)
@@ -75,7 +64,7 @@ def main(args):
             cells_list.append(cell)
 
         cx, cy = wgs84_to_3857.transform(np.array(centers_lon), np.array(centers_lat))
-        pred = rbf(np.column_stack([cx, cy]))
+        pred = ok(np.column_stack([cx, cy]))
 
         # Clip valores negativos (no deberían existir)
         pred = np.clip(pred, 0, None)
@@ -91,7 +80,7 @@ def main(args):
         # --- Save CSV ---
         os.makedirs(os.path.dirname(args.output), exist_ok=True) if os.path.dirname(args.output) else None
         out_df.to_csv(args.output, index=False)
-        print(f"CSV saved to {os.path.abspath(args.output)} (rows: {len(out_df)})")
+        logging.info(f"CSV saved to {os.path.abspath(args.output)} (rows: {len(out_df)})")
 
         # --- Save GeoJSON with hexagon polygons ---
         try:
@@ -127,9 +116,9 @@ def main(args):
             if os.path.dirname(geojson_path):
                 os.makedirs(os.path.dirname(geojson_path), exist_ok=True)
             gdf_out.to_file(geojson_path, driver='GeoJSON')
-            print(f"GeoJSON saved to {os.path.abspath(geojson_path)} (features: {len(gdf_out)})")
+            logging.info(f"GeoJSON saved to {os.path.abspath(geojson_path)} (features: {len(gdf_out)})")
         except Exception as e:
-            print(f"WARNING: Failed to write GeoJSON: {e}")
+            logging.warning(f"WARNING: Failed to write GeoJSON: {e}")
 
         # --- (Opcional) Export a GeoParquet con geometría del hex ---
         # from shapely.geometry import Polygon as ShpPolygon
@@ -150,11 +139,11 @@ def main(args):
         # gdf_out.to_parquet("h3_points.parquet")
 
     except FileNotFoundError as e:
-        print(f"ERROR: File not found. Make sure you are running the script from the project root. {e}")
+        logging.error(f"ERROR: File not found. Make sure you are running the script from the project root. {e}")
     except KeyError as e:
-        print(f"ERROR: Data not found, likely for the given date/time or variable. {e}")
+        logging.error(f"ERROR: Data not found, likely for the given date/time or variable. {e}")
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        logging.error(f"An unexpected error occurred: {e}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Export interpolated values on H3 cells within a BBOX to CSV.')

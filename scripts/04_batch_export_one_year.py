@@ -83,7 +83,7 @@ def main():
 
     # Resolver ruta al script 03 (en el mismo directorio que este 04)
     here = os.path.dirname(os.path.abspath(__file__))
-    script_03 = os.path.join(here, "03_export_h3_points_convexhull.py")
+    script_03 = os.path.join(here, "03_export_h3_points_convexhull_krigging.py")
     if not os.path.isfile(script_03):
         logging.error("No se encuentra el script 03 en %s", script_03)
         sys.exit(1)
