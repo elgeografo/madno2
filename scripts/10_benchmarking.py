@@ -119,8 +119,10 @@ def main():
     YEAR_FROM = 2005  # Año inicial
     YEAR_TO = 2009    # Año final (si es igual a YEAR_FROM, solo evalúa ese año)
 
-    # Parámetros SSH para túnel
-    USE_SSH_TUNNEL = True
+    # Modo de conexión
+    USE_REMOTE = False  # True para PostgreSQL remoto vía SSH, False para PostgreSQL local
+
+    # Parámetros para conexión REMOTA (si USE_REMOTE=True)
     SSH_HOST = "138.100.127.190"
     SSH_PORT = 22
     SSH_USER = "upm"
@@ -128,7 +130,11 @@ def main():
     REMOTE_PG_HOST = "127.0.0.1"
     REMOTE_PG_PORT = 5432
 
-    # Parámetros de conexión PostgreSQL
+    # Parámetros para conexión LOCAL (si USE_REMOTE=False)
+    LOCAL_PG_HOST = "localhost"
+    LOCAL_PG_PORT = 5432
+
+    # Parámetros de conexión PostgreSQL (comunes)
     DBNAME = "gis"
     USER = "gis"
     PASSWORD = "hjJ7_hj76HHjdftGg"
@@ -272,19 +278,21 @@ def main():
     print("BENCHMARKING DE CONSULTAS SQL - PostgreSQL")
     print("="*60)
     print(f"Rango de evaluación: {year_desc}")
-    if USE_SSH_TUNNEL:
-        print(f"Conexión: vía túnel SSH")
+    if USE_REMOTE:
+        print(f"Modo: REMOTO vía túnel SSH")
         print(f"SSH Host: {SSH_HOST}:{SSH_PORT}")
         print(f"SSH User: {SSH_USER}")
         print(f"PostgreSQL (remoto): {REMOTE_PG_HOST}:{REMOTE_PG_PORT}")
     else:
-        print(f"Conexión directa (sin túnel)")
+        print(f"Modo: LOCAL")
+        print(f"PostgreSQL (local): {LOCAL_PG_HOST}:{LOCAL_PG_PORT}")
     print(f"Database: {DBNAME}")
     print(f"Schema.Table: {SCHEMA}.{TABLE}")
     print("="*60)
 
     # Conectar y ejecutar queries
-    if USE_SSH_TUNNEL:
+    if USE_REMOTE:
+        # Conexión remota vía SSH tunnel
         print(f"\nEstableciendo túnel SSH a {SSH_USER}@{SSH_HOST}:{SSH_PORT}...")
         with open_system_ssh_tunnel(SSH_HOST, SSH_PORT, SSH_USER, SSH_PASSWORD,
                                     REMOTE_PG_HOST, REMOTE_PG_PORT) as (local_host, local_port):
@@ -333,10 +341,9 @@ def main():
                     print(f"Consultas exitosas: {sum([1 for r in results if r['success']])}/{len(results)}")
                     print("="*60)
     else:
-        # Conexión directa (código legacy, no se usa actualmente)
-        HOST = SSH_HOST
-        PORT = REMOTE_PG_PORT
-        with get_conn(HOST, DBNAME, USER, PASSWORD, PORT) as conn:
+        # Conexión local directa
+        print(f"\nConectando a PostgreSQL local en {LOCAL_PG_HOST}:{LOCAL_PG_PORT}...\n")
+        with get_conn(LOCAL_PG_HOST, DBNAME, USER, PASSWORD, LOCAL_PG_PORT) as conn:
             with conn.cursor() as cur:
                 results = []
 
