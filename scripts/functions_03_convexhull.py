@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from shapely.geometry import Polygon, Point, MultiPoint
-# from datetime import datetime
+from datetime import datetime, timedelta
 from pyproj import Transformer
 import logging
 
@@ -16,7 +16,6 @@ def get_points_df(year, month, day, hour, var, airquality_hdf, estaciones_xls):
 
     if hour==0:
         # Madrid database format is broken
-        from datetime import datetime, timedelta
         dt = datetime(year, month, day, hour)
         new_dt = dt - timedelta(days=1)
         year = new_dt.year

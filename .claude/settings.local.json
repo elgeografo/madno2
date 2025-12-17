@@ -9,7 +9,8 @@
       "Bash(for year in /Users/luisizquierdo/repos/upm/madno2/madno2-viewer/public/data/parquet/year=*/)",
       "Bash(ls:*)",
       "Bash(done)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(pip freeze:*)"
     ],
     "deny": [],
     "ask": []

@@ -64,7 +64,9 @@ def main(args):
             cells_list.append(cell)
 
         cx, cy = wgs84_to_3857.transform(np.array(centers_lon), np.array(centers_lat))
-        pred = ok(np.column_stack([cx, cy]))
+        # OrdinaryKriging exposes predictions through the execute() API; it is not callable.
+        pred, _ = ok.execute('points', cx, cy)
+        pred = np.asarray(pred).ravel()
 
         # Clip valores negativos (no deberían existir)
         pred = np.clip(pred, 0, None)

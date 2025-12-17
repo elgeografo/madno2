@@ -6,9 +6,11 @@ from collections import defaultdict
 
 # --- CONFIGURACIÓN ---
 # Carpeta con los CSV organizados por año
-input_folder = '/Users/luisizquierdo/repos/upm/madno2/madno2-viewer/public/data/series'
+#input_folder = '/Users/luisizquierdo/repos/upm/madno2/madno2-viewer/public/data/series'
+input_folder = '/Volumes/MV/carto/madno2'
 # Carpeta de salida para los Parquet particionados
-output_folder = '/Users/luisizquierdo/repos/upm/madno2/madno2-viewer/public/data/parquet'
+#output_folder = '/Users/luisizquierdo/repos/upm/madno2/madno2-viewer/public/data/parquet'
+output_folder = '/Volumes/MV/carto/madno2Parquet'
 
 # --- PROCESO PRINCIPAL ---
 def process_csv_to_partitioned_parquet():
