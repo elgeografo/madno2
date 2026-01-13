@@ -1,0 +1,30 @@
+Año único (2005),2005,2005,Q1: Contar todos los registros del año 2005,2.088,0.6671,3.129965522410433,True,True
+Año único (2005),2005,2005,Q2: Promedio de valores por mes en el año 2005,99.7165,0.1419,702.723749119098,True,True
+Año único (2005),2005,2005,Q4: Top 10 celdas H3 con mayor valor promedio en el año 2005,33.4925,0.4387,76.34488260770459,True,True
+Año único (2005),2005,2005,Q5: Registros de una fecha específica (2005-07-15),0.0147,0.0873,0.1683848797250859,True,True
+Año único (2005),2005,2005,Q6: Rango de fechas disponibles en el año 2005,6.2102,0.0861,72.12775842044135,True,True
+Año único (2005),2005,2005,Q7: Estadísticas generales por año (año 2005),77.3501,0.1039,744.4667949951876,True,True
+Año único (2005),2005,2005,Q8: Patrón horario de NO2 en el año 2005,28.414,0.19,149.54736842105262,True,True
+Año único (2005),2005,2005,Q9: Días con mayor contaminación promedio en el año 2005,9.9611,0.1919,51.907764460656594,True,True
+Año único (2005),2005,2005,Q10: Percentiles de NO2 en el año 2005,15.7169,4.7254,3.3260464722563174,True,True
+Año único (2005),2005,2005,TOTAL,273.1287021636963,7.0373406410217285,38.81135163069805,True,True
+Rango corto (2005-2009),2005,2009,Q1: Contar todos los registros del años 2005 a 2009,31.3605,1.2775,24.548336594911934,True,True
+Rango corto (2005-2009),2005,2009,Q2: Promedio de valores por mes en el años 2005 a 2009,11.8579,1.7039,6.9592699102059985,True,True
+Rango corto (2005-2009),2005,2009,Q4: Top 10 celdas H3 con mayor valor promedio en el años 2005 a 2009,12.5801,1.7694,7.109811235447044,True,True
+Rango corto (2005-2009),2005,2009,Q5: Registros de una fecha específica (2005-07-15),0.0775,0.0961,0.8064516129032258,True,True
+Rango corto (2005-2009),2005,2009,Q6: Rango de fechas disponibles en el años 2005 a 2009,46.8523,0.1578,296.9093789607098,True,True
+Rango corto (2005-2009),2005,2009,Q7: Estadísticas generales por año (años 2005 a 2009),11.7923,0.2453,48.07297187117815,True,True
+Rango corto (2005-2009),2005,2009,Q8: Patrón horario de NO2 en el años 2005 a 2009,16.4809,0.6546,25.17705468988695,True,True
+Rango corto (2005-2009),2005,2009,Q9: Días con mayor contaminación promedio en el años 2005 a 2009,20.964,0.5189,40.40084794758142,True,True
+Rango corto (2005-2009),2005,2009,Q10: Percentiles de NO2 en el años 2005 a 2009,91.4239,17.425,5.2467087517934,True,True
+Rango corto (2005-2009),2005,2009,TOTAL,243.5888159275055,24.448853492736816,9.963199951272564,True,True
+Rango largo (2001-2010),2001,2010,Q1: Contar todos los registros del años 2001 a 2010,47.5134,1.6419,28.938059565137948,True,True
+Rango largo (2001-2010),2001,2010,Q2: Promedio de valores por mes en el años 2001 a 2010,20.1857,3.8856,5.195002058884085,True,True
+Rango largo (2001-2010),2001,2010,Q4: Top 10 celdas H3 con mayor valor promedio en el años 2001 a 2010,13.2972,3.3967,3.91474077781376,True,True
+Rango largo (2001-2010),2001,2010,Q5: Registros de una fecha específica (2001-07-15),0.0342,0.0747,0.4578313253012048,True,True
+Rango largo (2001-2010),2001,2010,Q6: Rango de fechas disponibles en el años 2001 a 2010,83.4053,0.225,370.6902222222222,True,True
+Rango largo (2001-2010),2001,2010,Q7: Estadísticas generales por año (años 2001 a 2010),26.6658,0.4705,56.67545164718385,True,True
+Rango largo (2001-2010),2001,2010,Q8: Patrón horario de NO2 en el años 2001 a 2010,23.8809,1.2617,18.927558056590314,True,True
+Rango largo (2001-2010),2001,2010,Q9: Días con mayor contaminación promedio en el años 2001 a 2010,40.2398,1.0143,39.67248348614809,True,True
+Rango largo (2001-2010),2001,2010,Q10: Percentiles de NO2 en el años 2001 a 2010,160.2876,38.1278,4.203956168465004,True,True
+Rango largo (2001-2010),2001,2010,TOTAL,415.6580488681793,50.60859537124634,8.213190779531862,True,True

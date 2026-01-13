@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_DB: mydb
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: gh67yMn_kj
+      RES_PASSWORD: gh67yMn_kj
     ports:
       - "9061:5432"
     volumes:

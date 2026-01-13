@@ -1,5 +1,16 @@
-/.venv
+# Virtual environments (anywhere in the repo)
+.venv/
+venv/
+env/
+ENV/
+
+# Node modules
 /node_modules
+
+# Data directories
 /data
 /dist
 **/data/**
+
+# Logs
+*.log
