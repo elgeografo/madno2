@@ -10,7 +10,10 @@
       "Bash(ls:*)",
       "Bash(done)",
       "Bash(awk:*)",
-      "Bash(pip freeze:*)"
+      "Bash(pip freeze:*)",
+      "Bash(source:*)",
+      "Bash(python3:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []

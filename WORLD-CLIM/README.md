@@ -209,17 +209,6 @@ WORLD-CLIM/
 ├── README.md                          # Este archivo
 ├── requirements.txt                    # Dependencias de Python
 ├── venv/                              # Entorno virtual (creado por ti)
-├── data/                              # Datos descargados
-│   ├── historical/                    # Datos históricos WorldClim (ZIP)
-│   │   ├── wc2.1_30s_tmin.zip
-│   │   ├── wc2.1_30s_tmax.zip
-│   │   └── ...
-│   └── future/                        # Proyecciones futuras CMIP6 (GeoTiff)
-│       ├── ACCESS-CM2/
-│       │   ├── ssp126/
-│       │   ├── ssp245/
-│       │   └── ...
-│       └── ...
 ├── scripts/                           # Scripts de descarga y análisis
 │   ├── download_historical_data.py    # Descarga datos históricos
 │   ├── download_future_data.py        # Descarga proyecciones futuras

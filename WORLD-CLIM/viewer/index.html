@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorldClim - Visor H3</title>
+    <script src="https://unpkg.com/maplibre-gl@4.1.0/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@4.1.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/pmtiles@3.0.6/dist/pmtiles.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+
+        .control-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            min-width: 280px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .control-panel h3 {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .control-group select, .control-group input[type="text"] {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+        }
+
+        .legend {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .legend-title {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .legend-gradient {
+            height: 15px;
+            border-radius: 3px;
+            margin-bottom: 5px;
+        }
+
+        .legend-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .info-box {
+            position: absolute;
+            bottom: 30px;
+            left: 10px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            font-size: 12px;
+        }
+
+        .info-box strong {
+            color: #333;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 2000;
+        }
+
+        .status {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .status.error {
+            background: #fee;
+            color: #c00;
+        }
+
+        .status.success {
+            background: #efe;
+            color: #060;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <div class="control-panel">
+        <h3>WorldClim CMIP6 Viewer</h3>
+
+        <div class="control-group">
+            <label>Variable</label>
+            <select id="variable">
+                <option value="tmin">Temperatura minima (tmin)</option>
+                <option value="tmax">Temperatura maxima (tmax)</option>
+                <option value="prec">Precipitacion (prec)</option>
+                <option value="bioc">Bioclimaticas (bioc)</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Modelo GCM</label>
+            <select id="gcm">
+                <option value="GFDL-ESM4">GFDL-ESM4</option>
+                <option value="MIROC6">MIROC6</option>
+                <option value="MPI-ESM1-2-HR">MPI-ESM1-2-HR</option>
+                <option value="ACCESS-CM2">ACCESS-CM2</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Escenario SSP</label>
+            <select id="ssp">
+                <option value="ssp126">SSP1-2.6 (bajo)</option>
+                <option value="ssp245">SSP2-4.5 (medio-bajo)</option>
+                <option value="ssp370">SSP3-7.0 (medio-alto)</option>
+                <option value="ssp585">SSP5-8.5 (alto)</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Periodo</label>
+            <select id="period">
+                <option value="2021-2040">2021-2040</option>
+                <option value="2041-2060">2041-2060</option>
+                <option value="2061-2080">2061-2080</option>
+                <option value="2081-2100">2081-2100</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Opacidad: <span id="opacity-value">0.7</span></label>
+            <input type="range" id="opacity" min="0" max="1" step="0.1" value="0.7">
+        </div>
+
+        <div class="legend">
+            <div class="legend-title">Temperatura (C)</div>
+            <div class="legend-gradient" id="legend-gradient"></div>
+            <div class="legend-labels">
+                <span id="legend-min">-30</span>
+                <span id="legend-max">40</span>
+            </div>
+        </div>
+
+        <div class="status" id="status" style="display: none;"></div>
+    </div>
+
+    <div class="info-box" id="info-box" style="display: none;">
+        <strong>H3:</strong> <span id="info-h3"></span><br>
+        <strong>Valor:</strong> <span id="info-value"></span>
+    </div>
+
+    <div class="loading" id="loading">Cargando...</div>
+
+    <script>
+        // Configuracion
+        const BASE_URL = 'https://webserver02.leftcape.com/02_SUBPROCESS/world/climate/test/hexagons';
+
+        // Escala de colores para temperatura (azul frio -> rojo caliente)
+        const TEMP_COLORS = [
+            [-30, '#313695'],
+            [-20, '#4575b4'],
+            [-10, '#74add1'],
+            [0, '#abd9e9'],
+            [10, '#e0f3f8'],
+            [15, '#ffffbf'],
+            [20, '#fee090'],
+            [25, '#fdae61'],
+            [30, '#f46d43'],
+            [40, '#a50026']
+        ];
+
+        // Escala de colores para precipitacion
+        const PREC_COLORS = [
+            [0, '#ffffcc'],
+            [50, '#c7e9b4'],
+            [100, '#7fcdbb'],
+            [200, '#41b6c4'],
+            [400, '#1d91c0'],
+            [800, '#225ea8'],
+            [1500, '#0c2c84']
+        ];
+
+        // Registrar protocolo PMTiles
+        const protocol = new pmtiles.Protocol();
+        maplibregl.addProtocol('pmtiles', protocol.tile);
+
+        // Crear mapa
+        const map = new maplibregl.Map({
+            container: 'map',
+            style: {
+                version: 8,
+                sources: {
+                    'osm': {
+                        type: 'raster',
+                        tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                        tileSize: 256,
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }
+                },
+                layers: [
+                    {
+                        id: 'osm-layer',
+                        type: 'raster',
+                        source: 'osm',
+                        minzoom: 0,
+                        maxzoom: 19
+                    }
+                ]
+            },
+            center: [0, 20],
+            zoom: 2
+        });
+
+        // Controles del mapa
+        map.addControl(new maplibregl.NavigationControl());
+        map.addControl(new maplibregl.ScaleControl());
+
+        // Estado actual
+        let currentLayer = null;
+        let currentSource = null;
+
+        // Generar nombre del archivo PMTiles
+        function getPMTilesFilename() {
+            const variable = document.getElementById('variable').value;
+            const gcm = document.getElementById('gcm').value;
+            const ssp = document.getElementById('ssp').value;
+            const period = document.getElementById('period').value;
+            return `${variable}_${gcm}_${ssp}_${period}.pmtiles`;
+        }
+
+        function getPMTilesUrl() {
+            return `pmtiles://${BASE_URL}/${getPMTilesFilename()}`;
+        }
+
+        // Obtener escala de colores segun variable
+        function getColorScale() {
+            const variable = document.getElementById('variable').value;
+            if (variable === 'prec') {
+                return PREC_COLORS;
+            }
+            return TEMP_COLORS;
+        }
+
+        // Crear expresion de color para MapLibre
+        function getColorExpression() {
+            const colors = getColorScale();
+            const expr = ['interpolate', ['linear'], ['get', 'value']];
+            colors.forEach(([val, color]) => {
+                expr.push(val, color);
+            });
+            return expr;
+        }
+
+        // Actualizar leyenda
+        function updateLegend() {
+            const colors = getColorScale();
+            const variable = document.getElementById('variable').value;
+
+            // Gradiente
+            const gradientStops = colors.map(([val, color], i) => {
+                const pct = (i / (colors.length - 1)) * 100;
+                return `${color} ${pct}%`;
+            }).join(', ');
+
+            document.getElementById('legend-gradient').style.background =
+                `linear-gradient(to right, ${gradientStops})`;
+
+            // Labels
+            document.getElementById('legend-min').textContent = colors[0][0];
+            document.getElementById('legend-max').textContent = colors[colors.length - 1][0];
+
+            // Titulo
+            const titles = {
+                'tmin': 'Temperatura minima (C)',
+                'tmax': 'Temperatura maxima (C)',
+                'prec': 'Precipitacion (mm)',
+                'bioc': 'Variables bioclimaticas'
+            };
+            document.querySelector('.legend-title').textContent = titles[variable];
+        }
+
+        // Mostrar estado
+        function showStatus(message, isError = false) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + (isError ? 'error' : 'success');
+            status.style.display = 'block';
+        }
+
+        // Cargar capa PMTiles
+        async function loadLayer() {
+            const url = getPMTilesUrl();
+            const filename = getPMTilesFilename();
+            const opacity = parseFloat(document.getElementById('opacity').value);
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('status').style.display = 'none';
+
+            // Eliminar capa y fuente anteriores
+            if (currentLayer && map.getLayer(currentLayer)) {
+                map.removeLayer(currentLayer);
+            }
+            if (currentSource && map.getSource(currentSource)) {
+                map.removeSource(currentSource);
+            }
+
+            currentSource = null;
+            currentLayer = null;
+
+            const sourceId = 'climate-source';
+            const layerId = 'climate-layer';
+
+            try {
+                // Agregar fuente
+                map.addSource(sourceId, {
+                    type: 'vector',
+                    url: url
+                });
+
+                // Agregar capa
+                map.addLayer({
+                    id: layerId,
+                    type: 'fill',
+                    source: sourceId,
+                    'source-layer': 'climate',
+                    paint: {
+                        'fill-color': getColorExpression(),
+                        'fill-opacity': opacity,
+                        'fill-outline-color': 'rgba(0,0,0,0.1)'
+                    }
+                });
+
+                currentSource = sourceId;
+                currentLayer = layerId;
+
+                updateLegend();
+                showStatus(`Cargado: ${filename}`);
+
+                // Setup hover solo una vez
+                setupHoverInfo();
+
+            } catch (error) {
+                console.error('Error cargando PMTiles:', error);
+                showStatus(`Error: ${filename} no encontrado`, true);
+            }
+
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // Actualizar opacidad
+        function updateOpacity() {
+            const opacity = parseFloat(document.getElementById('opacity').value);
+            document.getElementById('opacity-value').textContent = opacity;
+
+            if (currentLayer && map.getLayer(currentLayer)) {
+                map.setPaintProperty(currentLayer, 'fill-opacity', opacity);
+            }
+        }
+
+        // Mostrar info al pasar el mouse
+        let hoverSetup = false;
+        function setupHoverInfo() {
+            if (hoverSetup) return;
+            hoverSetup = true;
+
+            const infoBox = document.getElementById('info-box');
+
+            map.on('mousemove', 'climate-layer', (e) => {
+                if (e.features.length > 0) {
+                    const feature = e.features[0];
+                    document.getElementById('info-h3').textContent = feature.properties.h3 || '-';
+                    document.getElementById('info-value').textContent =
+                        (feature.properties.value !== undefined)
+                            ? feature.properties.value.toFixed(2)
+                            : '-';
+                    infoBox.style.display = 'block';
+
+                    map.getCanvas().style.cursor = 'pointer';
+                }
+            });
+
+            map.on('mouseleave', 'climate-layer', () => {
+                infoBox.style.display = 'none';
+                map.getCanvas().style.cursor = '';
+            });
+        }
+
+        // Event listeners
+        document.getElementById('variable').addEventListener('change', loadLayer);
+        document.getElementById('gcm').addEventListener('change', loadLayer);
+        document.getElementById('ssp').addEventListener('change', loadLayer);
+        document.getElementById('period').addEventListener('change', loadLayer);
+        document.getElementById('opacity').addEventListener('input', updateOpacity);
+
+        // Inicializar
+        map.on('load', () => {
+            loadLayer();
+        });
+    </script>
+</body>
+</html>
