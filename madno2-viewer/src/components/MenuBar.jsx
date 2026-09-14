@@ -1,12 +1,15 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { MAP_STYLES } from '../config/mapStyles';
 import { Geocoder } from './Geocoder';
+import { LanguageSelector } from './LanguageSelector';
+import { useI18n } from '../i18n/useI18n';
 
 /**
- * Barra de menú superior con fondo semitransparente
+ * Top menu bar with a semi-transparent background.
  */
 export function MenuBar({ mapStyleId, setMapStyleId, showTerrain, setShowTerrain, onLocationSelected }) {
+  const { t } = useI18n();
+
   return (
     <div style={{
       position: 'absolute',
@@ -22,37 +25,7 @@ export function MenuBar({ mapStyleId, setMapStyleId, showTerrain, setShowTerrain
       gap: '20px',
       boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
     }}>
-      {/* Botón Home */}
-      <Link
-        to="/"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '40px',
-          height: '40px',
-          background: 'rgba(255, 255, 255, 0.9)',
-          borderRadius: '6px',
-          textDecoration: 'none',
-          color: '#374151',
-          fontSize: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          transition: 'all 0.2s',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(255, 255, 255, 1)';
-          e.currentTarget.style.transform = 'scale(1.05)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
-          e.currentTarget.style.transform = 'scale(1)';
-        }}
-        title="Inicio"
-      >
-        🏠
-      </Link>
-
-      {/* Selector de estilos de mapa */}
+      {/* Map style selector */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -68,7 +41,7 @@ export function MenuBar({ mapStyleId, setMapStyleId, showTerrain, setShowTerrain
           color: '#374151',
           whiteSpace: 'nowrap',
         }}>
-          Estilo de mapa:
+          {t('menu.mapStyle')}
         </label>
         <select
           value={mapStyleId}
@@ -85,12 +58,12 @@ export function MenuBar({ mapStyleId, setMapStyleId, showTerrain, setShowTerrain
           }}
         >
           {Object.values(MAP_STYLES).map(style => (
-            <option key={style.id} value={style.id}>{style.name}</option>
+            <option key={style.id} value={style.id}>{t(`mapStyles.${style.id}`)}</option>
           ))}
         </select>
       </div>
 
-      {/* Switch para mostrar relieve */}
+      {/* Terrain toggle */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -107,7 +80,7 @@ export function MenuBar({ mapStyleId, setMapStyleId, showTerrain, setShowTerrain
           whiteSpace: 'nowrap',
           cursor: 'pointer',
         }}>
-          Mostrar relieve
+          {t('menu.showTerrain')}
         </label>
         <label style={{
           position: 'relative',
@@ -148,8 +121,13 @@ export function MenuBar({ mapStyleId, setMapStyleId, showTerrain, setShowTerrain
         </label>
       </div>
 
-      {/* Geocodificador */}
+      {/* Geocoder */}
       <Geocoder onLocationSelected={onLocationSelected} />
+
+      {/* Language selector, pinned to the right end of the bar */}
+      <div style={{ marginLeft: 'auto' }}>
+        <LanguageSelector />
+      </div>
     </div>
   );
 }

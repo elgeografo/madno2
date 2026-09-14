@@ -1,6 +1,9 @@
 import React from 'react';
+import { useI18n } from '../i18n/useI18n';
 
 export function HexTooltip({ pickedHex, pointerPos }) {
+  const { t } = useI18n();
+
   if (!pickedHex) return null;
 
   return (
@@ -16,8 +19,8 @@ export function HexTooltip({ pickedHex, pointerPos }) {
         pointerEvents: 'none',
       }}
     >
-      <div><strong>Hex ID:</strong> {pickedHex.h3 || 'N/A'}</div>
-      <div><strong>Valor:</strong> {Number(pickedHex.value ?? 0).toFixed(2)}</div>
+      <div><strong>{t('tooltip.hexId')}</strong> {pickedHex.h3 || t('population.notAvailable')}</div>
+      <div><strong>{t('tooltip.value')}</strong> {Number(pickedHex.value ?? 0).toFixed(2)}</div>
     </div>
   );
 }

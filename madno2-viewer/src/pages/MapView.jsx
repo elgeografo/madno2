@@ -19,8 +19,10 @@ import { LegendSelector } from '../components/LegendSelector';
 import { PopulationInfoPanel } from '../components/PopulationInfoPanel';
 import { HexTooltip } from '../components/HexTooltip';
 import { MapViewer } from '../components/MapViewer';
+import { useI18n } from '../i18n/useI18n';
 
 export function MapView() {
+  const { t } = useI18n();
   const { mapId } = useParams();
   const mapConfig = MAPS_CONFIG[mapId];
 
@@ -169,9 +171,9 @@ export function MapView() {
         const data = await manager.getSpatialMapData(year, month, day, hour);
 
         setSpatialAnalysisData(data);
-        console.log('🗺️ Datos espaciales cargados:', data.length, 'hexágonos');
+        console.log('🗺️ Spatial data loaded:', data.length, 'hexagons');
       } catch (error) {
-        console.error('Error cargando datos espaciales:', error);
+        console.error('Error loading spatial data:', error);
         setSpatialAnalysisData(null);
       }
     };
@@ -197,10 +199,10 @@ export function MapView() {
         background: '#f3f4f6'
       }}>
         <h1 style={{ fontSize: '2rem', color: '#1f2937', marginBottom: '16px' }}>
-          Mapa no encontrado
+          {t('app.mapNotFound')}
         </h1>
         <p style={{ color: '#6b7280', marginBottom: '24px' }}>
-          El mapa "{mapId}" no existe en la configuración.
+          {t('app.mapNotFoundDetail', { mapId })}
         </p>
         <Link
           to="/"
@@ -213,7 +215,7 @@ export function MapView() {
             fontWeight: '600'
           }}
         >
-          ← Volver al inicio
+          {t('app.backHome')}
         </Link>
       </div>
     );
@@ -257,7 +259,7 @@ export function MapView() {
       // Si es un hexágono H3, capturar su ID para análisis
       const hexId = info.object.h3;
       setSelectedHexId(hexId);
-      console.log('Hexágono seleccionado para análisis:', hexId);
+      console.log('Hexagon selected for analysis:', hexId);
 
       // También llamar al manejador existente para el tooltip
       handleClick(info);

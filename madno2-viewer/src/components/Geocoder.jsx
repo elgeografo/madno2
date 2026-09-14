@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useI18n } from '../i18n/useI18n';
 
 /**
- * Componente de geocodificación usando Nominatim (OpenStreetMap)
+ * Geocoding component backed by Nominatim (OpenStreetMap).
  */
 export function Geocoder({ onLocationSelected }) {
+  const { t } = useI18n();
   const [searchText, setSearchText] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -38,7 +40,7 @@ export function Geocoder({ onLocationSelected }) {
       setSuggestions(results);
       setShowSuggestions(true);
     } catch (error) {
-      console.error('Error al buscar ubicación:', error);
+      console.error('Geocoding request failed:', error);
       setSuggestions([]);
     } finally {
       setIsSearching(false);
@@ -90,7 +92,7 @@ export function Geocoder({ onLocationSelected }) {
               setShowSuggestions(false);
             }
           }}
-          placeholder="Buscar dirección..."
+          placeholder={t('menu.searchPlaceholder')}
           style={{
             flex: 1,
             padding: '6px 10px',
@@ -115,7 +117,7 @@ export function Geocoder({ onLocationSelected }) {
             whiteSpace: 'nowrap',
           }}
         >
-          {isSearching ? '🔍' : '🔍 Buscar'}
+          {isSearching ? '🔍' : `🔍 ${t('menu.search')}`}
         </button>
       </form>
 

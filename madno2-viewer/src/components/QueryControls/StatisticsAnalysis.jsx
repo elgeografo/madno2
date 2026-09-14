@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import ParquetDataManager from '../../utils/ParquetDataManager';
 import { HelpModal } from '../HelpModal';
-import { ANALYSIS_HELP } from '../../utils/analysisHelpContent';
+import { ANALYSIS_HELP } from '../../i18n/helpContent';
+import { useI18n } from '../../i18n/useI18n';
 
 export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId, onExecute, setIsLoading }) {
+  const { t, tList, lang } = useI18n();
+  const months = tList('calendar.months');
   const [analysisType, setAnalysisType] = useState('summary');
   const [year, setYear] = useState(2001);
   const [month, setMonth] = useState(1);
@@ -28,11 +31,11 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
           sqlQuery = summaryResult.sqlQuery;
 
           metadata = {
-            type: 'Resumen Estadístico',
+            type: t('statistics.typeSummary'),
             year,
             month,
-            day: day || 'Todo el mes',
-            scope: selectedHexId ? `Hexágono ${selectedHexId}` : 'Toda la superficie',
+            day: day || t('common.wholeMonth'),
+            scope: selectedHexId ? t('common.hexagonScope', { id: selectedHexId }) : t('common.wholeSurface'),
             sqlQuery: sqlQuery,
             parquetBaseUrl: parquetBaseUrl
           };
@@ -50,11 +53,11 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
           sqlQuery = complianceResult.sqlQuery;
 
           metadata = {
-            type: 'Cumplimiento Normativo',
+            type: t('statistics.typeCompliance'),
             year,
             month,
-            day: day || 'Todo el mes',
-            scope: selectedHexId ? `Hexágono ${selectedHexId}` : 'Toda la superficie',
+            day: day || t('common.wholeMonth'),
+            scope: selectedHexId ? t('common.hexagonScope', { id: selectedHexId }) : t('common.wholeSurface'),
             sqlQuery: sqlQuery,
             parquetBaseUrl: parquetBaseUrl
           };
@@ -66,22 +69,22 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
           break;
       }
     } catch (error) {
-      console.error('Error en análisis estadístico:', error);
-      alert('Error al calcular el análisis: ' + error.message);
+      console.error('Statistical analysis failed:', error);
+      alert(t('common.errorCalculating') + error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const currentHelp = ANALYSIS_HELP[analysisType];
+  const currentHelp = ANALYSIS_HELP[lang]?.[analysisType] || ANALYSIS_HELP.en[analysisType];
 
   return (
     <div style={{ padding: '12px', fontSize: '13px' }}>
-      {/* Tipo de análisis con botón de ayuda */}
+      {/* Analysis type with help button */}
       <div style={{ marginBottom: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
           <label style={{ fontWeight: '600' }}>
-            Tipo de análisis
+            {t('common.analysisType')}
           </label>
           <button
             onClick={() => setShowHelp(true)}
@@ -105,7 +108,7 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'rgba(99, 102, 241, 0.15)';
             }}
-            title="Ver ayuda sobre este análisis"
+            title={t('help.viewHelp')}
           >
             ?
           </button>
@@ -123,8 +126,8 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
             color: '#374151',
           }}
         >
-          <option value="summary">Resumen Estadístico</option>
-          <option value="compliance">Cumplimiento Normativo</option>
+          <option value="summary">{t('statistics.summary')}</option>
+          <option value="compliance">{t('statistics.compliance')}</option>
         </select>
       </div>
 
@@ -139,7 +142,7 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>
-              <strong>Hexágono:</strong> {selectedHexId.substring(0, 10)}...
+              <strong>{t('common.hexagon')}</strong> {selectedHexId.substring(0, 10)}...
             </span>
             <button
               onClick={onClearHexId}
@@ -153,19 +156,19 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
                 fontSize: '11px',
               }}
             >
-              Limpiar
+              {t('common.clear')}
             </button>
           </div>
           <div style={{ marginTop: '4px', opacity: 0.7, fontSize: '11px' }}>
-            Análisis limitado a este hexágono
+            {t('common.analysisLimitedToHex')}
           </div>
         </div>
       )}
 
-      {/* Año */}
+      {/* Year */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          Año
+          {t('common.year')}
         </label>
         <input
           type="number"
@@ -185,10 +188,10 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
         />
       </div>
 
-      {/* Mes */}
+      {/* Month */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          Mes
+          {t('common.month')}
         </label>
         <select
           value={month}
@@ -205,16 +208,16 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
         >
           {[...Array(12)].map((_, i) => (
             <option key={i + 1} value={i + 1}>
-              {new Date(2000, i, 1).toLocaleString('es-ES', { month: 'long' })}
+              {months[i]}
             </option>
           ))}
         </select>
       </div>
 
-      {/* Día (opcional) */}
+      {/* Day (optional) */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          Día (opcional)
+          {t('common.dayOptional')}
         </label>
         <select
           value={day || ''}
@@ -229,7 +232,7 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
             color: '#374151',
           }}
         >
-          <option value="">Todo el mes</option>
+          <option value="">{t('common.wholeMonth')}</option>
           {[...Array(31)].map((_, i) => (
             <option key={i + 1} value={i + 1}>
               {i + 1}
@@ -248,7 +251,7 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
           fontSize: '11px',
           opacity: 0.8
         }}>
-          Mostrará estadísticas descriptivas: media, mediana, desviación estándar, percentiles, etc.
+          {t('statistics.summaryHint')}
         </div>
       )}
 
@@ -261,11 +264,11 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
           fontSize: '11px',
           opacity: 0.8
         }}>
-          Evaluará el cumplimiento de los límites de la UE: 40 µg/m³ (límite anual) y 200 µg/m³ (alerta)
+          {t('statistics.complianceHint')}
         </div>
       )}
 
-      {/* Botón calcular */}
+      {/* Calculate button */}
       <button
         onClick={handleCalculate}
         style={{
@@ -286,10 +289,10 @@ export function StatisticsAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId
           e.currentTarget.style.background = 'rgba(99, 102, 241, 0.9)';
         }}
       >
-        Calcular
+        {t('common.calculate')}
       </button>
 
-      {/* Modal de ayuda */}
+      {/* Help modal */}
       <HelpModal
         isOpen={showHelp}
         onClose={() => setShowHelp(false)}

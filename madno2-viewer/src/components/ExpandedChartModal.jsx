@@ -1,10 +1,22 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
+import { useI18n } from '../i18n/useI18n';
 import * as d3 from 'd3';
 import { renderLineChartWithTooltip, renderBarChartWithTooltip } from '../utils/d3Renderers';
 import ParquetDataManager from '../utils/ParquetDataManager';
 
 export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata }) {
+  const { t, tList, lang } = useI18n();
+
+  // Axis and legend labels handed to the D3 renderers
+  const chartLabels = {
+    hourOfDay: t('chart.hourOfDay'),
+    value: t('chart.value'),
+    series: t('chart.series'),
+    average: t('chart.average'),
+    maximum: t('chart.maximum'),
+    minimum: t('chart.minimum'),
+  };
   const svgRef = useRef(null);
   const [legendItems, setLegendItems] = useState([]);
   const [activeTab, setActiveTab] = useState('chart'); // 'chart', 'query', 'table'
@@ -25,13 +37,13 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
 
     let seriesInfo = [];
     if (chartType === 'line') {
-      seriesInfo = renderLineChartWithTooltip(svgRef.current, data, width, height, false);
+      seriesInfo = renderLineChartWithTooltip(svgRef.current, data, width, height, false, chartLabels);
     } else if (chartType === 'bar') {
-      seriesInfo = renderBarChartWithTooltip(svgRef.current, data, width, height);
+      seriesInfo = renderBarChartWithTooltip(svgRef.current, data, width, height, chartLabels);
     }
 
     setLegendItems(seriesInfo || []);
-  }, [isOpen, data, chartType]);
+  }, [isOpen, data, chartType, lang]);
 
   // Inicializar la query editable cuando cambia metadata
   useEffect(() => {
@@ -97,17 +109,15 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
 
   if (!isOpen) return null;
 
-  // Construir título detallado a partir de metadata
+  // Build a detailed title from the metadata
   const getMonthName = (month) => {
-    if (!month) return 'Todos';
-    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    return months[month - 1];
+    if (!month) return t('chart.all');
+    return tList('calendar.months')[month - 1];
   };
 
   const getDayNames = (weekdays) => {
-    if (!weekdays || weekdays.length === 0) return 'Todos';
-    const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    if (!weekdays || weekdays.length === 0) return t('chart.all');
+    const days = tList('calendar.weekdaysShort');
     return weekdays.map(d => days[d]).join(', ');
   };
 
@@ -127,7 +137,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
         justifyContent: 'center',
       }}
     >
-      {/* Modal del gráfico */}
+      {/* Chart modal */}
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
@@ -142,7 +152,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
           border: '1px solid rgba(255,255,255,0.1)',
         }}
       >
-        {/* Header con título detallado y leyenda */}
+        {/* Header with detailed title and legend */}
         <div
           style={{
             marginBottom: '20px',
@@ -152,41 +162,41 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
             gap: '20px',
           }}
         >
-          {/* Título detallado (izquierda) */}
+          {/* Detailed title (left) */}
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: '18px', fontWeight: '600', color: 'white', lineHeight: '1.4' }}>
-              {metadata?.type || 'Análisis'}
+              {metadata?.type || t('chart.analysis')}
             </div>
             {metadata?.year && (
               <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.85)', marginTop: '4px' }}>
-                Año: {metadata.year}
+                {t('chart.metaYear')} {metadata.year}
               </div>
             )}
             {metadata?.yearFrom && metadata?.yearTo && (
               <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.85)', marginTop: '4px' }}>
-                Años: {metadata.yearFrom} - {metadata.yearTo}
+                {t('chart.metaYears')} {metadata.yearFrom} - {metadata.yearTo}
               </div>
             )}
             {metadata?.month !== undefined && (
               <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>
-                Mes: {getMonthName(metadata.month)}
+                {t('chart.metaMonth')} {getMonthName(metadata.month)}
               </div>
             )}
             {metadata?.weekdays !== undefined && (
               <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>
-                Días: {getDayNames(metadata.weekdays)}
+                {t('chart.metaDays')} {getDayNames(metadata.weekdays)}
               </div>
             )}
             <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>
-              Hexágono: {metadata?.hexId ? (
+              {t('chart.metaHexagon')} {metadata?.hexId ? (
                 <span style={{ fontFamily: 'monospace', fontSize: '13px', background: 'rgba(255, 255, 0, 0.2)', padding: '2px 6px', borderRadius: '3px' }}>
                   {metadata.hexId}
                 </span>
-              ) : 'Todos'}
+              ) : t('chart.all')}
             </div>
           </div>
 
-          {/* Leyenda (derecha) */}
+          {/* Legend (right) */}
           {legendItems.length > 0 && activeTab === 'chart' && (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {legendItems.map((item, i) => (
@@ -245,7 +255,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
                 marginBottom: '-2px',
               }}
             >
-              📊 Gráfica
+              {t('chart.tabChart')}
             </button>
             <button
               onClick={() => setActiveTab('query')}
@@ -262,7 +272,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
                 marginBottom: '-2px',
               }}
             >
-              🔍 Query SQL
+              {t('chart.tabQuery')}
             </button>
             <button
               onClick={() => setActiveTab('table')}
@@ -279,12 +289,12 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
                 marginBottom: '-2px',
               }}
             >
-              📋 Tabla {queryResult && `(${queryResult.length} filas)`}
+              {t('chart.tabTable')} {queryResult && t('chart.rows', { count: queryResult.length })}
             </button>
           </div>
         </div>
 
-        {/* Contenido de la pestaña "Gráfica" */}
+        {/* "Chart" tab content */}
         {activeTab === 'chart' && (
           <svg
             ref={svgRef}
@@ -330,11 +340,11 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
                   cursor: isExecuting ? 'not-allowed' : 'pointer',
                 }}
               >
-                {isExecuting ? '⏳ Ejecutando...' : '▶️ Run'}
+                {isExecuting ? t('chart.running') : t('chart.run')}
               </button>
               {queryError && (
                 <div style={{ color: 'rgba(239, 68, 68, 1)', fontSize: '13px' }}>
-                  ❌ Error: {queryError}
+                  ❌ {t('chart.error')} {queryError}
                 </div>
               )}
             </div>
@@ -365,7 +375,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
                     e.currentTarget.style.background = 'rgba(16, 185, 129, 0.9)';
                   }}
                 >
-                  📥 Descargar CSV
+                  {t('chart.downloadCsv')}
                 </button>
               </div>
             )}
@@ -417,7 +427,7 @@ export function ExpandedChartModal({ isOpen, onClose, data, chartType, metadata 
                   color: 'rgba(255,255,255,0.5)',
                   fontSize: '14px',
                 }}>
-                  Ejecuta una query desde la pestaña "Query SQL" para ver los resultados aquí
+                  {t('chart.tableEmptyState')}
                 </div>
               )}
             </div>

@@ -1,9 +1,12 @@
 import React from 'react';
+import { useI18n } from '../i18n/useI18n';
 
 /**
- * Popup que se muestra al hacer click sobre una feature de GeoJSON
+ * Popup shown when a GeoJSON feature is clicked.
  */
 export function GeoJsonPopup({ feature, onClose, populationData, municipalityCode, selectedYear, availableYears }) {
+  const { t, locale } = useI18n();
+
   if (!feature) return null;
 
   const { properties } = feature;
@@ -42,7 +45,7 @@ export function GeoJsonPopup({ feature, onClose, populationData, municipalityCod
           padding: '4px 8px',
           lineHeight: '1',
         }}
-        title="Cerrar"
+        title={t('population.close')}
       >
         ×
       </button>
@@ -57,7 +60,7 @@ export function GeoJsonPopup({ feature, onClose, populationData, municipalityCod
         paddingRight: '30px',
         color: '#1f2937',
       }}>
-        {popData ? popData.name : 'Información de la Feature'}
+        {popData ? popData.name : t('population.featureInfo')}
       </div>
 
       {/* Datos de población si existen */}
@@ -78,8 +81,8 @@ export function GeoJsonPopup({ feature, onClose, populationData, municipalityCod
           }}>
             <thead>
               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                <th style={{ padding: '8px', textAlign: 'left', color: '#6b7280' }}>Año</th>
-                <th style={{ padding: '8px', textAlign: 'right', color: '#6b7280' }}>Población</th>
+                <th style={{ padding: '8px', textAlign: 'left', color: '#6b7280' }}>{t('population.year')}</th>
+                <th style={{ padding: '8px', textAlign: 'right', color: '#6b7280' }}>{t('population.population')}</th>
               </tr>
             </thead>
             <tbody>
@@ -106,7 +109,7 @@ export function GeoJsonPopup({ feature, onClose, populationData, municipalityCod
                       fontWeight: isSelected ? '600' : '400',
                       color: isSelected ? '#667eea' : '#374151',
                     }}>
-                      {popData[year]?.toLocaleString() || 'N/A'}
+                      {popData[year]?.toLocaleString(locale) || t('population.notAvailable')}
                     </td>
                   </tr>
                 );

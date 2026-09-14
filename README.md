@@ -1,251 +1,107 @@
-# MADNO2 Viewer - Visualización de NO₂ en Madrid
+# MadNO2
 
-Aplicación web para la visualización y análisis de datos de contaminación por NO₂ (dióxido de nitrógeno) en Madrid, utilizando datos desde 2001 hasta la actualidad en formato Parquet.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Características
+*Read this in [Español](README_ES.md).*
 
-- **Visualización 3D**: Hexágonos H3 con datos de contaminación en deck.gl
-- **Animación temporal**: Reproducción de secuencias por año, mes, día y hora
-- **Panel de análisis avanzado**: 5 tipos de análisis sobre datos Parquet:
-  1. Análisis Temporal (variación diaria, horaria, días de la semana, meses)
-  2. Análisis Espacial (ranking de zonas, superar umbrales)
-  3. Eventos Extremos (días pico, episodios consecutivos, percentiles, duración)
-  4. Análisis Comparativos (comparación entre años)
-  5. Estadísticas (resumen estadístico, cumplimiento normativo)
-- **Consultas SQL**: DuckDB-WASM para consultas eficientes sobre archivos Parquet
-- **Visualizaciones D3**: Gráficos de línea, barras y tablas estadísticas
+MadNO2 is a serverless web platform for exploring, analysing and visualising
+nitrogen dioxide (NO₂) pollution in Madrid. It covers 24 years of hourly data
+(2001–2024) on a hexagonal grid, and runs entirely in the browser: there is no
+backend, no API and no database server.
 
-## Tecnologías
+The viewer queries partitioned Parquet files directly over HTTP range requests
+using DuckDB-WASM, and renders the results with deck.gl and D3.
 
-- **Frontend**: React 18 + Vite
-- **Mapas**: deck.gl + Mapbox GL
-- **Datos**: Parquet + DuckDB-WASM
-- **Gráficos**: D3.js
-- **Geometría espacial**: H3 (Uber)
+## Data
 
-## Requisitos de desarrollo
+The primary observations are the hourly air-quality measurements published by
+the Madrid City Council on its open data portal
+([datos.madrid.es](https://datos.madrid.es)), together with the inventory of
+the municipal monitoring network. Only NO₂ (magnitude code 8) is used.
 
-- Node.js 18+
-- npm o yarn
+Those point measurements are interpolated with ordinary kriging onto H3
+resolution-9 cells (~400 m across), producing one surface per hour: about
+210,000 time steps and 325 million rows in total.
 
-## Instalación y desarrollo
+The derived dataset is published separately on Zenodo under CC BY 4.0. The
+viewer expects it under `public/data/parquet`, partitioned as
+`year=YYYY/month=MM/data.parquet`.
+
+## Features
+
+- **3D hexagon map.** H3 cells rendered with deck.gl, with adjustable radius,
+  elevation and opacity.
+- **Time animation.** Play back a sequence by year, month, day and hour.
+- **Analysis panel** with five families of queries over the Parquet files:
+  temporal patterns, spatial hotspots and thresholds, extreme events,
+  year-to-year comparisons, and descriptive statistics with EU compliance
+  checks.
+- **SQL access.** Every analysis exposes the DuckDB query behind it, which you
+  can edit, re-run and export to CSV.
+- **Bilingual interface.** English and Spanish, selected automatically from the
+  browser language and switchable from the flag menu at the top right.
+
+## Requirements
+
+- Node.js 18 or newer
+- npm
+
+## Getting started
 
 ```bash
-# Clonar el repositorio
-git clone <repository-url>
+git clone https://github.com/elgeografo/madno2.git
 cd madno2/madno2-viewer
-
-# Instalar dependencias
 npm install
-
-# Ejecutar en modo desarrollo
 npm run dev
 ```
 
-La aplicación estará disponible en `http://localhost:5173`
+The app is served at `http://localhost:5173`.
 
-## Compilación para producción
+## Building for production
 
-```bash
-# Generar build de producción
-npm run build
-
-# El resultado estará en el directorio dist/
-```
-
-## Despliegue
-
-### Estructura del build
-
-Después de ejecutar `npm run build`, el directorio `dist/` contendrá:
-
-```
-dist/
-├── index.html
-├── assets/
-│   ├── index-[hash].js    (JavaScript compilado y minificado)
-│   ├── index-[hash].css   (CSS compilado y minificado)
-│   └── ...
-└── vite.svg              (favicon)
-```
-
-### Requisitos del servidor
-
-**La aplicación es completamente estática** y solo requiere un servidor HTTP básico. **NO necesita Node.js, npm ni ningún backend en producción.**
-
-### Opciones de despliegue
-
-#### 1. Servidor web tradicional (Apache, Nginx, IIS)
-
-Copiar el contenido de `dist/` al directorio raíz del servidor web:
-
-```bash
-# Ejemplo con Apache
-cp -r dist/* /var/www/html/madno2/
-
-# Ejemplo con Nginx
-cp -r dist/* /usr/share/nginx/html/madno2/
-```
-
-#### 2. Servicios de hosting estático (recomendado)
-
-**GitHub Pages:**
 ```bash
 npm run build
-# Subir contenido de dist/ a rama gh-pages
 ```
 
-**Netlify:**
-```bash
-# Netlify CLI
-netlify deploy --dir=dist --prod
+The output in `dist/` is fully static. Any HTTP server will do, with two
+requirements: it must support **HTTP range requests** (DuckDB-WASM reads
+Parquet files in slices) and it should serve the data files from the same
+origin as the app, or send the appropriate CORS headers.
 
-# O arrastrar carpeta dist/ en la interfaz web
-```
+The `base` path is set in `vite.config.js`; change it if you deploy under a
+different sub-path.
 
-**Vercel:**
-```bash
-# Vercel CLI
-vercel --prod
-
-# O conectar repositorio Git desde la interfaz web
-```
-
-**Cloudflare Pages:**
-- Build command: `npm run build`
-- Build output directory: `dist`
-
-#### 3. Servidor simple para pruebas locales
-
-```bash
-# Python
-cd dist
-python -m http.server 8000
-
-# Node.js (npx)
-npx serve dist
-
-# PHP
-cd dist
-php -S localhost:8000
-```
-
-### Configuración de rutas (SPA)
-
-Si despliegas en un subdirectorio (ej: `https://ejemplo.com/madno2/`), actualiza `vite.config.js`:
-
-```javascript
-export default defineConfig({
-  plugins: [react()],
-  base: '/madno2/', // Ruta base
-  publicDir: 'public-prod',
-})
-```
-
-Para servidores que requieren configuración de SPA:
-
-**Nginx:**
-```nginx
-location / {
-  try_files $uri $uri/ /index.html;
-}
-```
-
-**Apache (.htaccess):**
-```apache
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteBase /
-  RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
-</IfModule>
-```
-
-### Dependencias externas en runtime
-
-La aplicación necesita acceso a internet para:
-
-1. **Datos Parquet de Madrid NO₂**:
-   - URL: `https://datos1.geoso2.es/spain/madno/parquet`
-   - Estructura: `year=YYYY/month=MM/data.parquet`
-   - Periodo: 2001-2025
-
-2. **Datos GeoJSON y CSV de Alcarria** (opcional, solo para mapa de Alcarria):
-   - GeoJSON: `https://datos1.geoso2.es/spain/alcarria/poblacion/alcarria_municpios.geojson`
-   - CSV: `https://datos1.geoso2.es/spain/alcarria/poblacion/ALCARRIA%20Pob.csv`
-
-3. **Bibliotecas CDN**:
-   - Mapbox GL (estilos de mapa)
-   - DuckDB-WASM (motor de consultas)
-
-**Nota:** Los datos Parquet NO están incluidos en el bundle. La aplicación los descarga dinámicamente según las consultas del usuario.
-
-### Tamaño del bundle
-
-- **Build completo**: ~2-5 MB (JavaScript + CSS compilados)
-- **Assets estáticos**: ~1 KB (solo favicon)
-- **Total en servidor**: ~2-5 MB
-
-El directorio `public/data/` (con archivos CSV legacy) está **excluido del build de producción** mediante la configuración `publicDir: 'public-prod'` en `vite.config.js`.
-
-### Variables de entorno
-
-La aplicación **NO requiere variables de entorno** en producción. Todas las configuraciones están en:
-- `src/config/mapsConfig.js` - Configuración de mapas y fuentes de datos
-- `src/config/constants.js` - Constantes globales
-
-Para cambiar la URL de los datos Parquet, edita `mapsConfig.js` antes de compilar:
-
-```javascript
-dataSource: {
-  type: 'parquet',
-  parquetBase: 'https://tu-servidor.com/ruta/parquet',
-}
-```
-
-### Verificación del despliegue
-
-1. Abre la URL en el navegador
-2. Verifica que el mapa se carga correctamente
-3. Abre el Panel de Análisis (botón izquierdo)
-4. Ejecuta una consulta de análisis temporal
-5. Verifica que se generan gráficos correctamente
-
-Si hay errores:
-- Abre la consola del navegador (F12)
-- Verifica la conectividad a las URLs de datos Parquet
-- Comprueba que las rutas de la SPA están configuradas correctamente
-
-## Estructura del proyecto
+## Repository layout
 
 ```
-madno2-viewer/
-├── public-prod/          # Archivos públicos para producción
-│   └── vite.svg         # Favicon
-├── public/              # Archivos solo para desarrollo (excluidos del build)
-│   └── data/           # Datos CSV legacy
-├── src/
-│   ├── components/     # Componentes React
-│   ├── config/         # Configuración de mapas y constantes
-│   ├── hooks/          # React hooks personalizados
-│   ├── layers/         # Capas de deck.gl
-│   ├── pages/          # Páginas principales
-│   └── utils/          # Utilidades (ParquetDataManager, etc.)
-├── index.html
-├── vite.config.js      # Configuración de Vite
-└── package.json
+madno2/
+├── madno2-viewer/          Web application (React + Vite)
+│   ├── src/components/     UI components, incl. the analysis panel
+│   ├── src/i18n/           Translation catalogue and language context
+│   ├── src/utils/          DuckDB access layer and D3 renderers
+│   └── src/config/         Map, style and data-source configuration
+├── scripts/                Data pipeline (download, interpolate, export)
+└── dockers/                Optional PostGIS setup
 ```
 
-## Licencia
+The processing pipeline lives in `scripts/`, numbered in execution order: it
+parses the yearly archives, interpolates each hour onto the H3 grid and writes
+the partitioned Parquet dataset.
 
-[Especificar licencia]
+## Internationalisation
 
-## Autores
+All user-facing text lives in `src/i18n/translations.js`, with the longer help
+texts in `src/i18n/helpContent.js`. English is the default and the fallback for
+any missing key. To add a language, add its entry to both files and list its
+code in `SUPPORTED_LANGUAGES`.
 
-[Especificar autores]
+## Citation
 
-## Contacto
+If you use this software or the dataset, please cite the Zenodo record and
+credit the Ayuntamiento de Madrid as the source of the original measurements.
 
-[Información de contacto]
+## Licence
+
+Source code released under the [MIT License](LICENSE). The derived NO₂ dataset
+is distributed on Zenodo under CC BY 4.0. The original measurements are
+© Ayuntamiento de Madrid.

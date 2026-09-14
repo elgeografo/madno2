@@ -1,5 +1,6 @@
 import React from 'react';
 import { pad2, daysInMonth } from '../utils/dateUtils';
+import { useI18n } from '../i18n/useI18n';
 
 export function AnimationPanel({
   frames,
@@ -10,6 +11,7 @@ export function AnimationPanel({
   handlePause,
   handleStop,
 }) {
+  const { t } = useI18n();
   const curFrame = frames[frameIdx];
   const displayHour = curFrame ? (curFrame.hour === 24 ? 0 : curFrame.hour) : 0;
   const label = curFrame
@@ -108,7 +110,7 @@ export function AnimationPanel({
           disabled={frames.length < 2}
         />
         <div style={{ textAlign: 'right', fontSize: '12px', opacity: 0.9 }}>
-          {frames.length} frames
+          {t('controls.frames', { count: frames.length })}
         </div>
       </div>
     </div>

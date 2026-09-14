@@ -1,7 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { useI18n } from '../i18n/useI18n';
 
 export function HelpModal({ isOpen, onClose, title, description, sqlQuery, example }) {
+  const { t } = useI18n();
+
   if (!isOpen) return null;
 
   const modalContent = (
@@ -66,12 +69,12 @@ export function HelpModal({ isOpen, onClose, title, description, sqlQuery, examp
           </button>
         </div>
 
-        {/* Contenido */}
+        {/* Body */}
         <div style={{ padding: '24px' }}>
-          {/* Descripción */}
+          {/* Description */}
           <div style={{ marginBottom: '20px' }}>
             <h3 style={{ fontSize: '15px', fontWeight: '600', color: 'rgba(255,255,255,0.9)', marginBottom: '10px' }}>
-              ¿Qué hace esta consulta?
+              {t('help.whatDoesItDo')}
             </h3>
             <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', lineHeight: '1.6', margin: 0 }}>
               {description}
@@ -82,7 +85,7 @@ export function HelpModal({ isOpen, onClose, title, description, sqlQuery, examp
           {sqlQuery && (
             <div style={{ marginBottom: '20px' }}>
               <h3 style={{ fontSize: '15px', fontWeight: '600', color: 'rgba(255,255,255,0.9)', marginBottom: '10px' }}>
-                Consulta SQL
+                {t('help.sqlQuery')}
               </h3>
               <pre
                 style={{
@@ -103,11 +106,11 @@ export function HelpModal({ isOpen, onClose, title, description, sqlQuery, examp
             </div>
           )}
 
-          {/* Ejemplo */}
+          {/* Example */}
           {example && (
             <div>
               <h3 style={{ fontSize: '15px', fontWeight: '600', color: 'rgba(255,255,255,0.9)', marginBottom: '10px' }}>
-                Ejemplo de uso
+                {t('help.exampleOfUse')}
               </h3>
               <div
                 style={{
@@ -150,13 +153,13 @@ export function HelpModal({ isOpen, onClose, title, description, sqlQuery, examp
             onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(79, 70, 229, 0.9)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.9)'; }}
           >
-            Entendido
+            {t('help.understood')}
           </button>
         </div>
       </div>
     </div>
   );
 
-  // Usar portal para renderizar en document.body
+  // Render through a portal into document.body
   return ReactDOM.createPortal(modalContent, document.body);
 }

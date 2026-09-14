@@ -1,7 +1,10 @@
 import React from 'react';
 import { RADIUS_METERS } from '../config/constants';
+import { useI18n } from '../i18n/useI18n';
 
 export function ControlPanel({ radius, setRadius, elevationScale, setElevationScale, opacity, setOpacity }) {
+  const { t } = useI18n();
+
   return (
     <div
       style={{
@@ -22,7 +25,7 @@ export function ControlPanel({ radius, setRadius, elevationScale, setElevationSc
     >
       <div style={{ marginBottom: '12px' }}>
         <label style={{ fontWeight: '600', display: 'block', marginBottom: '4px' }}>
-          Radio: {Math.round(radius)} m
+          {t('controls.radius', { value: Math.round(radius) })}
         </label>
         <input
           type="range"
@@ -37,7 +40,7 @@ export function ControlPanel({ radius, setRadius, elevationScale, setElevationSc
 
       <div style={{ marginBottom: '12px' }}>
         <label style={{ fontWeight: '600', display: 'block', marginBottom: '4px' }}>
-          Escala de elevación: {elevationScale}
+          {t('controls.elevationScale', { value: elevationScale })}
         </label>
         <input
           type="range"
@@ -52,7 +55,7 @@ export function ControlPanel({ radius, setRadius, elevationScale, setElevationSc
 
       <div>
         <label style={{ fontWeight: '600', display: 'block', marginBottom: '4px' }}>
-          Opacidad: {opacity.toFixed(2)}
+          {t('controls.opacity', { value: opacity.toFixed(2) })}
         </label>
         <input
           type="range"

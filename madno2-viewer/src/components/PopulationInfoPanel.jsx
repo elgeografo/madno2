@@ -1,9 +1,12 @@
 import React from 'react';
+import { useI18n } from '../i18n/useI18n';
 
 /**
- * Panel de información de población que se muestra en la esquina inferior derecha
+ * Population information panel shown in the bottom-right corner.
  */
 export function PopulationInfoPanel({ municipalityName, populationData, availableYears, selectedYear }) {
+  const { t, locale } = useI18n();
+
   if (!municipalityName || !populationData) return null;
 
   return (
@@ -39,7 +42,7 @@ export function PopulationInfoPanel({ municipalityName, populationData, availabl
         fontWeight: '600',
         marginBottom: '8px',
       }}>
-        Evolución de Población
+        {t('population.evolution')}
       </div>
 
       <table style={{
@@ -49,8 +52,8 @@ export function PopulationInfoPanel({ municipalityName, populationData, availabl
       }}>
         <thead>
           <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-            <th style={{ padding: '6px', textAlign: 'left', color: '#88ccff', fontWeight: '600' }}>Año</th>
-            <th style={{ padding: '6px', textAlign: 'right', color: '#88ccff', fontWeight: '600' }}>Población</th>
+            <th style={{ padding: '6px', textAlign: 'left', color: '#88ccff', fontWeight: '600' }}>{t('population.year')}</th>
+            <th style={{ padding: '6px', textAlign: 'right', color: '#88ccff', fontWeight: '600' }}>{t('population.population')}</th>
           </tr>
         </thead>
         <tbody>
@@ -77,7 +80,7 @@ export function PopulationInfoPanel({ municipalityName, populationData, availabl
                   fontWeight: isSelected ? '600' : '400',
                   color: isSelected ? '#88ccff' : 'white',
                 }}>
-                  {populationData[year]?.toLocaleString() || 'N/A'}
+                  {populationData[year]?.toLocaleString(locale) || t('population.notAvailable')}
                 </td>
               </tr>
             );

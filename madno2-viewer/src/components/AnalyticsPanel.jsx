@@ -6,9 +6,11 @@ import { ExtremeEvents } from './QueryControls/ExtremeEvents';
 import { ComparativeAnalysis } from './QueryControls/ComparativeAnalysis';
 import { StatisticsAnalysis } from './QueryControls/StatisticsAnalysis';
 import { D3Chart } from './D3Chart';
+import { useI18n } from '../i18n/useI18n';
 
 export function AnalyticsPanel({ isOpen, onToggle, parquetBaseUrl, selectedHexId, onClearHexId, onHighlightHexagons, onSpatialAnalysisExecute }) {
-  // Panel de análisis con queries a Parquet
+  const { t } = useI18n();
+  // Analysis panel backed by Parquet queries
   const [activeSection, setActiveSection] = useState(null);
   const [chartData, setChartData] = useState(null);
   const [chartType, setChartType] = useState(null);
@@ -69,7 +71,7 @@ export function AnalyticsPanel({ isOpen, onToggle, parquetBaseUrl, selectedHexId
           color: 'white',
         }}
       >
-        {/* Header con botón de cerrar */}
+        {/* Header with close button */}
         <div
           style={{
             padding: '16px',
@@ -80,7 +82,7 @@ export function AnalyticsPanel({ isOpen, onToggle, parquetBaseUrl, selectedHexId
           }}
         >
           <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>
-            Panel de Análisis
+            {t('analytics.panelTitle')}
           </h2>
           <button
             onClick={onToggle}
@@ -97,7 +99,7 @@ export function AnalyticsPanel({ isOpen, onToggle, parquetBaseUrl, selectedHexId
           </button>
         </div>
 
-        {/* Zona de secciones colapsables con scroll */}
+        {/* Scrollable collapsible sections */}
         <div
           style={{
             flex: 1,
@@ -107,7 +109,7 @@ export function AnalyticsPanel({ isOpen, onToggle, parquetBaseUrl, selectedHexId
         >
           <AnalyticsSection
             id="temporal"
-            title="1. Análisis Temporal"
+            title={t('analytics.section1')}
             isActive={activeSection === 'temporal'}
             onToggle={() => handleSectionToggle('temporal')}
           >
@@ -126,7 +128,7 @@ export function AnalyticsPanel({ isOpen, onToggle, parquetBaseUrl, selectedHexId
 
           <AnalyticsSection
             id="spatial"
-            title="2. Análisis Espacial"
+            title={t('analytics.section2')}
             isActive={activeSection === 'spatial'}
             onToggle={() => handleSectionToggle('spatial')}
           >
@@ -145,7 +147,7 @@ export function AnalyticsPanel({ isOpen, onToggle, parquetBaseUrl, selectedHexId
 
           <AnalyticsSection
             id="extreme"
-            title="3. Eventos Extremos"
+            title={t('analytics.section3')}
             isActive={activeSection === 'extreme'}
             onToggle={() => handleSectionToggle('extreme')}
           >
@@ -164,7 +166,7 @@ export function AnalyticsPanel({ isOpen, onToggle, parquetBaseUrl, selectedHexId
 
           <AnalyticsSection
             id="comparative"
-            title="4. Análisis Comparativos"
+            title={t('analytics.section4')}
             isActive={activeSection === 'comparative'}
             onToggle={() => handleSectionToggle('comparative')}
           >
@@ -183,7 +185,7 @@ export function AnalyticsPanel({ isOpen, onToggle, parquetBaseUrl, selectedHexId
 
           <AnalyticsSection
             id="statistics"
-            title="5. Estadísticas"
+            title={t('analytics.section5')}
             isActive={activeSection === 'statistics'}
             onToggle={() => handleSectionToggle('statistics')}
           >
@@ -202,17 +204,17 @@ export function AnalyticsPanel({ isOpen, onToggle, parquetBaseUrl, selectedHexId
 
           <AnalyticsSection
             id="advanced"
-            title="6. Consultas Avanzadas"
+            title={t('analytics.section6')}
             isActive={activeSection === 'advanced'}
             onToggle={() => handleSectionToggle('advanced')}
           >
             <div style={{ padding: '12px', fontSize: '13px' }}>
-              <p style={{ margin: 0, opacity: 0.7 }}>Próximamente...</p>
+              <p style={{ margin: 0, opacity: 0.7 }}>{t('analytics.comingSoon')}</p>
             </div>
           </AnalyticsSection>
         </div>
 
-        {/* Zona de gráfico D3 fija en la parte inferior */}
+        {/* D3 chart area pinned to the bottom */}
         <D3Chart
           data={chartData}
           chartType={chartType}

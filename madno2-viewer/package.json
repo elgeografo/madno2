@@ -3,6 +3,8 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "description": "Serverless web viewer for hourly NO2 concentration fields in Madrid (2001-2024)",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

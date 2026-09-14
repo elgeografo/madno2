@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import ParquetDataManager from '../../utils/ParquetDataManager';
 import { HelpModal } from '../HelpModal';
-import { ANALYSIS_HELP } from '../../utils/analysisHelpContent';
+import { ANALYSIS_HELP } from '../../i18n/helpContent';
+import { useI18n } from '../../i18n/useI18n';
 
 export function SpatialAnalysis({ parquetBaseUrl, onExecute, setIsLoading, onHighlightHexagons, onSpatialAnalysisExecute }) {
+  const { t, tList, lang } = useI18n();
+  const months = tList('calendar.months');
   const [analysisType, setAnalysisType] = useState('hotspots');
   const [year, setYear] = useState(2001);
   const [month, setMonth] = useState(1);
-  const [day, setDay] = useState(null); // null = todo el mes
-  const [hour, setHour] = useState(null); // null = todas las horas
+  const [day, setDay] = useState(null); // null = whole month
+  const [hour, setHour] = useState(null); // null = all hours
   const [topN, setTopN] = useState(10);
   const [threshold, setThreshold] = useState(80); // µg/m³
   const [showHelp, setShowHelp] = useState(false);
@@ -21,7 +24,7 @@ export function SpatialAnalysis({ parquetBaseUrl, onExecute, setIsLoading, onHig
       let metadata = null;
       let sqlQuery = null;
 
-      // Notificar al mapa para que cargue datos del periodo de análisis
+      // Tell the map to load data for the analysis period
       if (onSpatialAnalysisExecute) {
         onSpatialAnalysisExecute({
           year,
@@ -33,26 +36,26 @@ export function SpatialAnalysis({ parquetBaseUrl, onExecute, setIsLoading, onHig
 
       switch (analysisType) {
         case 'hotspots':
-          // Encontrar los N hexágonos con mayor concentración promedio
+          // Find the N hexagons with the highest average concentration
           const result = await manager.getSpatialHotspots(year, month, day, hour, topN);
           data = result.data;
           sqlQuery = result.sqlQuery;
 
-          console.log('📊 Datos de hotspots:', data);
-          console.log('📊 Número de hexágonos:', data.length);
+          console.log('📊 Hotspot data:', data);
+          console.log('📊 Hexagon count:', data.length);
 
           metadata = {
-            type: 'Hotspots - Zonas más contaminadas',
+            type: t('spatial.typeHotspots'),
             year,
             month,
-            day: day || 'Todo el mes',
-            hour: hour !== null ? `${hour}:00` : 'Todas las horas',
+            day: day || t('common.wholeMonth'),
+            hour: hour !== null ? `${hour}:00` : t('common.allHours'),
             topN,
             sqlQuery: sqlQuery,
             parquetBaseUrl: parquetBaseUrl
           };
 
-          // Resaltar hexágonos en el mapa
+          // Highlight hexagons on the map
           if (onHighlightHexagons && data.length > 0) {
             const hexIds = data.map(row => row.h3_index);
             onHighlightHexagons(hexIds);
@@ -62,23 +65,23 @@ export function SpatialAnalysis({ parquetBaseUrl, onExecute, setIsLoading, onHig
           break;
 
         case 'threshold':
-          // Encontrar hexágonos que superan un umbral
+          // Find hexagons above a threshold
           const thresholdResult = await manager.getSpatialThreshold(year, month, day, hour, threshold);
           data = thresholdResult.data;
           sqlQuery = thresholdResult.sqlQuery;
 
           metadata = {
-            type: `Hexágonos > ${threshold} µg/m³`,
+            type: t('spatial.typeThreshold', { threshold }),
             year,
             month,
-            day: day || 'Todo el mes',
-            hour: hour !== null ? `${hour}:00` : 'Todas las horas',
+            day: day || t('common.wholeMonth'),
+            hour: hour !== null ? `${hour}:00` : t('common.allHours'),
             threshold,
             sqlQuery: sqlQuery,
             parquetBaseUrl: parquetBaseUrl
           };
 
-          // Resaltar hexágonos que superan el umbral
+          // Highlight hexagons above the threshold
           if (onHighlightHexagons && data.length > 0) {
             const hexIds = data.map(row => row.h3_index);
             onHighlightHexagons(hexIds);
@@ -91,22 +94,22 @@ export function SpatialAnalysis({ parquetBaseUrl, onExecute, setIsLoading, onHig
           break;
       }
     } catch (error) {
-      console.error('Error en análisis espacial:', error);
-      alert('Error al calcular el análisis: ' + error.message);
+      console.error('Spatial analysis failed:', error);
+      alert(t('common.errorCalculating') + error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const currentHelp = ANALYSIS_HELP[analysisType];
+  const currentHelp = ANALYSIS_HELP[lang]?.[analysisType] || ANALYSIS_HELP.en[analysisType];
 
   return (
     <div style={{ padding: '12px', fontSize: '13px' }}>
-      {/* Tipo de análisis espacial con botón de ayuda */}
+      {/* Spatial analysis type with help button */}
       <div style={{ marginBottom: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
           <label style={{ fontWeight: '600' }}>
-            Tipo de análisis
+            {t('common.analysisType')}
           </label>
           <button
             onClick={() => setShowHelp(true)}
@@ -130,7 +133,7 @@ export function SpatialAnalysis({ parquetBaseUrl, onExecute, setIsLoading, onHig
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'rgba(99, 102, 241, 0.15)';
             }}
-            title="Ver ayuda sobre este análisis"
+            title={t('help.viewHelp')}
           >
             ?
           </button>
@@ -148,15 +151,15 @@ export function SpatialAnalysis({ parquetBaseUrl, onExecute, setIsLoading, onHig
             color: '#374151',
           }}
         >
-          <option value="hotspots">Hotspots (Top N zonas)</option>
-          <option value="threshold">Superar umbral</option>
+          <option value="hotspots">{t('spatial.hotspots')}</option>
+          <option value="threshold">{t('spatial.threshold')}</option>
         </select>
       </div>
 
-      {/* Año */}
+      {/* Year */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          Año
+          {t('common.year')}
         </label>
         <input
           type="number"
@@ -176,10 +179,10 @@ export function SpatialAnalysis({ parquetBaseUrl, onExecute, setIsLoading, onHig
         />
       </div>
 
-      {/* Mes */}
+      {/* Month */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          Mes
+          {t('common.month')}
         </label>
         <select
           value={month}
@@ -196,16 +199,16 @@ export function SpatialAnalysis({ parquetBaseUrl, onExecute, setIsLoading, onHig
         >
           {[...Array(12)].map((_, i) => (
             <option key={i + 1} value={i + 1}>
-              {new Date(2000, i, 1).toLocaleString('es-ES', { month: 'long' })}
+              {months[i]}
             </option>
           ))}
         </select>
       </div>
 
-      {/* Día (opcional) */}
+      {/* Day (optional) */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          Día (opcional)
+          {t('common.dayOptional')}
         </label>
         <select
           value={day || ''}
@@ -220,7 +223,7 @@ export function SpatialAnalysis({ parquetBaseUrl, onExecute, setIsLoading, onHig
             color: '#374151',
           }}
         >
-          <option value="">Todo el mes</option>
+          <option value="">{t('common.wholeMonth')}</option>
           {[...Array(31)].map((_, i) => (
             <option key={i + 1} value={i + 1}>
               {i + 1}
@@ -229,10 +232,10 @@ export function SpatialAnalysis({ parquetBaseUrl, onExecute, setIsLoading, onHig
         </select>
       </div>
 
-      {/* Hora (opcional) */}
+      {/* Hour (optional) */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          Hora (opcional)
+          {t('common.hourOptional')}
         </label>
         <select
           value={hour !== null ? hour : ''}
@@ -247,7 +250,7 @@ export function SpatialAnalysis({ parquetBaseUrl, onExecute, setIsLoading, onHig
             color: '#374151',
           }}
         >
-          <option value="">Todas las horas</option>
+          <option value="">{t('common.allHours')}</option>
           {[...Array(24)].map((_, i) => (
             <option key={i} value={i}>
               {String(i).padStart(2, '0')}:00
@@ -256,11 +259,11 @@ export function SpatialAnalysis({ parquetBaseUrl, onExecute, setIsLoading, onHig
         </select>
       </div>
 
-      {/* Top N (solo para hotspots) */}
+      {/* Top N (hotspots only) */}
       {analysisType === 'hotspots' && (
         <div style={{ marginBottom: '12px' }}>
           <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-            Número de zonas (Top N)
+            {t('spatial.topN')}
           </label>
           <input
             type="number"
@@ -281,11 +284,11 @@ export function SpatialAnalysis({ parquetBaseUrl, onExecute, setIsLoading, onHig
         </div>
       )}
 
-      {/* Umbral (solo para threshold) */}
+      {/* Threshold (threshold analysis only) */}
       {analysisType === 'threshold' && (
         <div style={{ marginBottom: '12px' }}>
           <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-            Umbral (µg/m³)
+            {t('common.threshold')}
           </label>
           <input
             type="number"
@@ -305,12 +308,12 @@ export function SpatialAnalysis({ parquetBaseUrl, onExecute, setIsLoading, onHig
             }}
           />
           <div style={{ fontSize: '11px', marginTop: '4px', opacity: 0.7 }}>
-            Referencia: 40 µg/m³ (límite anual UE), 200 µg/m³ (alerta horaria)
+            {t('common.thresholdReference')}
           </div>
         </div>
       )}
 
-      {/* Botón calcular */}
+      {/* Calculate button */}
       <button
         onClick={handleCalculate}
         style={{
@@ -331,10 +334,10 @@ export function SpatialAnalysis({ parquetBaseUrl, onExecute, setIsLoading, onHig
           e.currentTarget.style.background = 'rgba(99, 102, 241, 0.9)';
         }}
       >
-        Calcular
+        {t('common.calculate')}
       </button>
 
-      {/* Modal de ayuda */}
+      {/* Help modal */}
       <HelpModal
         isOpen={showHelp}
         onClose={() => setShowHelp(false)}

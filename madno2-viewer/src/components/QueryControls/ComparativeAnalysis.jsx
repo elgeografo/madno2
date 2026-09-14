@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import ParquetDataManager from '../../utils/ParquetDataManager';
 import { HelpModal } from '../HelpModal';
-import { ANALYSIS_HELP } from '../../utils/analysisHelpContent';
+import { ANALYSIS_HELP } from '../../i18n/helpContent';
+import { useI18n } from '../../i18n/useI18n';
 
 export function ComparativeAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId, onExecute, setIsLoading }) {
+  const { t, tList, lang } = useI18n();
+  const months = tList('calendar.months');
   const [year1, setYear1] = useState(2001);
   const [year2, setYear2] = useState(2020);
   const [month, setMonth] = useState(1);
@@ -35,14 +38,14 @@ export function ComparativeAnalysis({ parquetBaseUrl, selectedHexId, onClearHexI
 
       onExecute(data, 'line', metadata);
     } catch (error) {
-      console.error('Error en análisis comparativo:', error);
-      alert('Error al calcular el análisis: ' + error.message);
+      console.error('Comparative analysis failed:', error);
+      alert(t('common.errorCalculating') + error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const currentHelp = ANALYSIS_HELP['comparative_years'];
+  const currentHelp = ANALYSIS_HELP[lang]?.comparative_years || ANALYSIS_HELP.en.comparative_years;
 
   return (
     <div style={{ padding: '12px', fontSize: '13px' }}>
@@ -50,7 +53,7 @@ export function ComparativeAnalysis({ parquetBaseUrl, selectedHexId, onClearHexI
       <div style={{ marginBottom: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
           <label style={{ fontWeight: '600' }}>
-            Comparar dos años
+            {t('comparative.compareTwoYears')}
           </label>
           <button
             onClick={() => setShowHelp(true)}
@@ -74,13 +77,13 @@ export function ComparativeAnalysis({ parquetBaseUrl, selectedHexId, onClearHexI
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'rgba(99, 102, 241, 0.15)';
             }}
-            title="Ver ayuda sobre este análisis"
+            title={t('help.viewHelp')}
           >
             ?
           </button>
         </div>
         <div style={{ fontSize: '12px', opacity: 0.8, marginBottom: '8px' }}>
-          Compara el patrón horario (24h) de dos años diferentes
+          {t('comparative.hint')}
         </div>
       </div>
 
@@ -95,7 +98,7 @@ export function ComparativeAnalysis({ parquetBaseUrl, selectedHexId, onClearHexI
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>
-              <strong>Hexágono:</strong> {selectedHexId.substring(0, 10)}...
+              <strong>{t('common.hexagon')}</strong> {selectedHexId.substring(0, 10)}...
             </span>
             <button
               onClick={onClearHexId}
@@ -109,11 +112,11 @@ export function ComparativeAnalysis({ parquetBaseUrl, selectedHexId, onClearHexI
                 fontSize: '11px',
               }}
             >
-              Limpiar
+              {t('common.clear')}
             </button>
           </div>
           <div style={{ marginTop: '4px', opacity: 0.7, fontSize: '11px' }}>
-            Análisis limitado a este hexágono
+            {t('common.analysisLimitedToHex')}
           </div>
         </div>
       )}
@@ -121,7 +124,7 @@ export function ComparativeAnalysis({ parquetBaseUrl, selectedHexId, onClearHexI
       {/* Año 1 */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          Año 1
+          {t('comparative.year1')}
         </label>
         <input
           type="number"
@@ -144,7 +147,7 @@ export function ComparativeAnalysis({ parquetBaseUrl, selectedHexId, onClearHexI
       {/* Año 2 */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          Año 2
+          {t('comparative.year2')}
         </label>
         <input
           type="number"
@@ -164,10 +167,10 @@ export function ComparativeAnalysis({ parquetBaseUrl, selectedHexId, onClearHexI
         />
       </div>
 
-      {/* Mes */}
+      {/* Month */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          Mes
+          {t('common.month')}
         </label>
         <select
           value={month}
@@ -184,16 +187,16 @@ export function ComparativeAnalysis({ parquetBaseUrl, selectedHexId, onClearHexI
         >
           {[...Array(12)].map((_, i) => (
             <option key={i + 1} value={i + 1}>
-              {new Date(2000, i, 1).toLocaleString('es-ES', { month: 'long' })}
+              {months[i]}
             </option>
           ))}
         </select>
       </div>
 
-      {/* Día (opcional) */}
+      {/* Day (optional) */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          Día (opcional)
+          {t('common.dayOptional')}
         </label>
         <select
           value={day || ''}
@@ -208,7 +211,7 @@ export function ComparativeAnalysis({ parquetBaseUrl, selectedHexId, onClearHexI
             color: '#374151',
           }}
         >
-          <option value="">Todo el mes (promediado)</option>
+          <option value="">{t('common.wholeMonthAveraged')}</option>
           {[...Array(31)].map((_, i) => (
             <option key={i + 1} value={i + 1}>
               {i + 1}
@@ -216,7 +219,7 @@ export function ComparativeAnalysis({ parquetBaseUrl, selectedHexId, onClearHexI
           ))}
         </select>
         <div style={{ fontSize: '11px', marginTop: '4px', opacity: 0.7 }}>
-          Si no seleccionas día, se promedian todos los días del mes
+          {t('comparative.dayHint')}
         </div>
       </div>
 
@@ -232,7 +235,7 @@ export function ComparativeAnalysis({ parquetBaseUrl, selectedHexId, onClearHexI
         El gráfico mostrará 2 líneas (una por año) con las 24 horas del día en el eje X
       </div>
 
-      {/* Botón calcular */}
+      {/* Calculate button */}
       <button
         onClick={handleCalculate}
         disabled={year1 === year2}
@@ -258,10 +261,10 @@ export function ComparativeAnalysis({ parquetBaseUrl, selectedHexId, onClearHexI
           }
         }}
       >
-        {year1 === year2 ? 'Selecciona años diferentes' : 'Calcular'}
+        {year1 === year2 ? t('comparative.pickDifferentYears') : t('common.calculate')}
       </button>
 
-      {/* Modal de ayuda */}
+      {/* Help modal */}
       <HelpModal
         isOpen={showHelp}
         onClose={() => setShowHelp(false)}

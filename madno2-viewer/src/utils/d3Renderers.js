@@ -1,12 +1,27 @@
 import * as d3 from 'd3';
 
 /**
- * Renderiza un line chart con soporte para múltiples series y tooltips interactivos
- * @param {boolean} showLegendInSvg - Si es false, no renderiza la leyenda dentro del SVG
- * @returns {Array} - Array de series con sus colores para renderizar leyenda externa
+ * Default (English) chart labels. Callers pass a translated set so that axes,
+ * legends and tooltips follow the language selected in the UI.
  */
-export function renderLineChartWithTooltip(svg, data, width = 400, height = 250, showLegendInSvg = true) {
-  const isLarge = width > 500; // Detectar si es versión ampliada
+const DEFAULT_LABELS = {
+  hourOfDay: 'Hour of day',
+  value: 'NO\u2082 (\u00b5g/m\u00b3)',
+  series: 'Data',
+  average: 'Average',
+  maximum: 'Maximum',
+  minimum: 'Minimum',
+};
+
+/**
+ * Renders a line chart supporting multiple series and interactive tooltips.
+ * @param {boolean} showLegendInSvg - When false, the legend is not drawn inside the SVG
+ * @param {object} labels - Translated axis/legend labels
+ * @returns {Array} - Series with their colours, for rendering an external legend
+ */
+export function renderLineChartWithTooltip(svg, data, width = 400, height = 250, showLegendInSvg = true, labels = DEFAULT_LABELS) {
+  const L = { ...DEFAULT_LABELS, ...(labels || {}) };
+  const isLarge = width > 500; // Detect the expanded version
   const fontSize = isLarge ? 16 : 13; // Tamaños de fuente
   const axisFontSize = isLarge ? 14 : 12;
   const legendFontSize = isLarge ? 15 : 13;
@@ -22,7 +37,7 @@ export function renderLineChartWithTooltip(svg, data, width = 400, height = 250,
 
   // Detectar si data es formato de múltiples series o una sola
   const isSingleSeries = Array.isArray(data) && data[0] && !data[0].series;
-  const series = isSingleSeries ? [{ series: 'Datos', data }] : data;
+  const series = isSingleSeries ? [{ series: L.series, data }] : data;
 
   // Colores para cada serie
   const colors = ['#6366f1', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'];
@@ -153,7 +168,7 @@ export function renderLineChartWithTooltip(svg, data, width = 400, height = 250,
     .attr('fill', '#374151')
     .attr('text-anchor', 'middle')
     .attr('font-size', `${fontSize}px`)
-    .text('Hora del día');
+    .text(L.hourOfDay);
 
   g.append('text')
     .attr('transform', 'rotate(-90)')
@@ -162,7 +177,7 @@ export function renderLineChartWithTooltip(svg, data, width = 400, height = 250,
     .attr('fill', '#374151')
     .attr('text-anchor', 'middle')
     .attr('font-size', `${fontSize}px`)
-    .text('NO₂ (µg/m³)');
+    .text(L.value);
 
   // Limpiar tooltip al cerrar
   svgSelection.on('remove', () => {
@@ -179,7 +194,8 @@ export function renderLineChartWithTooltip(svg, data, width = 400, height = 250,
 /**
  * Renderiza un bar chart con tooltips interactivos
  */
-export function renderBarChartWithTooltip(svg, data, width = 400, height = 250) {
+export function renderBarChartWithTooltip(svg, data, width = 400, height = 250, labels = DEFAULT_LABELS) {
+  const L = { ...DEFAULT_LABELS, ...(labels || {}) };
   console.log('📊 renderBarChartWithTooltip recibiendo:', {
     dataLength: data.length,
     firstItem: data[0],
@@ -261,15 +277,15 @@ export function renderBarChartWithTooltip(svg, data, width = 400, height = 250) 
       // Construir HTML del tooltip
       let tooltipHtml = `
         <div><strong>${d.label}</strong></div>
-        <div>Promedio: <strong>${d.value.toFixed(2)} µg/m³</strong></div>
+        <div>${L.average}: <strong>${d.value.toFixed(2)} µg/m³</strong></div>
       `;
 
       if (d.max_value !== undefined) {
-        tooltipHtml += `<div>Máximo: <strong style="color: #ef4444">${d.max_value.toFixed(2)} µg/m³</strong></div>`;
+        tooltipHtml += `<div>${L.maximum}: <strong style="color: #ef4444">${d.max_value.toFixed(2)} µg/m³</strong></div>`;
       }
 
       if (d.min_value !== undefined) {
-        tooltipHtml += `<div>Mínimo: <strong style="color: #3b82f6">${d.min_value.toFixed(2)} µg/m³</strong></div>`;
+        tooltipHtml += `<div>${L.minimum}: <strong style="color: #3b82f6">${d.min_value.toFixed(2)} µg/m³</strong></div>`;
       }
 
       tooltip
@@ -331,7 +347,7 @@ export function renderBarChartWithTooltip(svg, data, width = 400, height = 250) 
           .style('opacity', 1)
           .html(`
             <div><strong>${d.label}</strong></div>
-            <div>Máximo: <strong style="color: #ef4444">${(d.max_value || d.value).toFixed(2)} µg/m³</strong></div>
+            <div>${L.maximum}: <strong style="color: #ef4444">${(d.max_value || d.value).toFixed(2)} µg/m³</strong></div>
           `)
           .style('left', (event.pageX + 15) + 'px')
           .style('top', (event.pageY - 28) + 'px');
@@ -380,7 +396,7 @@ export function renderBarChartWithTooltip(svg, data, width = 400, height = 250) 
           .style('opacity', 1)
           .html(`
             <div><strong>${d.label}</strong></div>
-            <div>Mínimo: <strong style="color: #3b82f6">${(d.min_value || d.value).toFixed(2)} µg/m³</strong></div>
+            <div>${L.minimum}: <strong style="color: #3b82f6">${(d.min_value || d.value).toFixed(2)} µg/m³</strong></div>
           `)
           .style('left', (event.pageX + 15) + 'px')
           .style('top', (event.pageY - 28) + 'px');
@@ -396,9 +412,9 @@ export function renderBarChartWithTooltip(svg, data, width = 400, height = 250) 
 
     // Añadir leyenda horizontal en la parte superior derecha
     const legendData = [
-      { label: 'Promedio', type: 'rect', color: '#6366f1' },
-      { label: 'Máximo', type: 'line', color: '#ef4444' },
-      { label: 'Mínimo', type: 'line', color: '#3b82f6' }
+      { label: L.average, type: 'rect', color: '#6366f1' },
+      { label: L.maximum, type: 'line', color: '#ef4444' },
+      { label: L.minimum, type: 'line', color: '#3b82f6' }
     ];
 
     const legend = g.append('g')
@@ -440,7 +456,7 @@ export function renderBarChartWithTooltip(svg, data, width = 400, height = 250) 
     .attr('fill', '#374151')
     .attr('text-anchor', 'middle')
     .attr('font-size', `${fontSize}px`)
-    .text('NO₂ (µg/m³)');
+    .text(L.value);
 
   // Limpiar tooltip al cerrar
   svgSelection.on('remove', () => {

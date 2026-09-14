@@ -29,8 +29,26 @@ export function createLayers(data, {
   const coverage = Math.max(0.05, Math.min(1, radius / RADIUS_METERS)); // 0..1
 
   // Obtener la URL del estilo seleccionado
-  const selectedStyle = Object.values(MAP_STYLES).find(style => style.id === mapStyleId);
-  const tileUrl = selectedStyle ? selectedStyle.url : MAP_STYLES.CARTO_DARK.url;
+  const selectedStyle = Object.values(MAP_STYLES).find(style => style.id === mapStyleId) || MAP_STYLES.OSM_DARK;
+  const tileUrl = selectedStyle.url;
+  const tileFilter = selectedStyle.filter || null;
+
+  // Carga de teselas. Si el estilo define un filtro CSS, se aplica en un canvas
+  // (p. ej. inversión de colores para obtener OSM en modo oscuro).
+  const loadTile = async ({ url, signal }) => {
+    const response = await fetch(url, { signal });
+    if (!response.ok) throw new Error(`Tesela no disponible: ${url}`);
+    const bitmap = await createImageBitmap(await response.blob());
+    if (!tileFilter) return bitmap;
+    const canvas = document.createElement('canvas');
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const ctx = canvas.getContext('2d');
+    ctx.filter = tileFilter;
+    ctx.drawImage(bitmap, 0, 0);
+    bitmap.close();
+    return canvas;
+  };
 
   // Configuración por defecto de capas (si no se especifica)
   const layers = layersConfig || {
@@ -45,8 +63,9 @@ export function createLayers(data, {
     // Mapa base plano normal
     result.push(
       new TileLayer({
-        id: 'osm-tiles',
+        id: `basemap-tiles-${selectedStyle.id}`,
         data: tileUrl,
+        getTileData: loadTile,
         minZoom: 0,
         maxZoom: 19,
         tileSize: 256,
@@ -78,8 +97,8 @@ export function createLayers(data, {
 
   // Añadir capa de relieve/terreno 3D si está activada
   if (showTerrain && layers.basemap) {
-    const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoibHVpc2l6cXVpZXJkb21lc2EiLCJhIjoiY2tlOHFkaXk3MXo4MDJ6b2JudHloNXV6aCJ9.Yvr3aJ8qLWuh2BpEJbH7Sg';
-
+    // Elevación: teselas Terrarium (AWS Open Data / Mapzen), sin API key.
+    // Codificación: altura = (R * 256 + G + B / 256) - 32768
     result.push(
       new TerrainLayer({
         id: 'terrain-layer',
@@ -89,12 +108,12 @@ export function createLayers(data, {
         strategy: 'no-overlap',
         visible: true,
         elevationDecoder: {
-          rScaler: 6553.6,
-          gScaler: 25.6,
-          bScaler: 0.1,
-          offset: -10000
+          rScaler: 256,
+          gScaler: 1,
+          bScaler: 1 / 256,
+          offset: -32768
         },
-        elevationData: `https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.png?access_token=${MAPBOX_ACCESS_TOKEN}`,
+        elevationData: 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png',
         texture: tileUrl,
         wireframe: false,
         color: [255, 255, 255],

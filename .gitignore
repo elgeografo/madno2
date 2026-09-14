@@ -14,3 +14,7 @@ ENV/
 
 # Logs
 *.log
+# Environment files (may contain API tokens)
+.env
+.env.local
+.env.*.local

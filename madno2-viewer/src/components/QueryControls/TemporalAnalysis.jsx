@@ -1,25 +1,20 @@
 import React, { useState } from 'react';
 import ParquetDataManager from '../../utils/ParquetDataManager';
 import { HelpModal } from '../HelpModal';
-import { ANALYSIS_HELP } from '../../utils/analysisHelpContent';
+import { ANALYSIS_HELP } from '../../i18n/helpContent';
+import { useI18n } from '../../i18n/useI18n';
 
 export function TemporalAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId, onExecute, setIsLoading }) {
+  const { t, tList, lang } = useI18n();
   const [analysisType, setAnalysisType] = useState('hourly');
   const [yearFrom, setYearFrom] = useState(2001);
   const [yearTo, setYearTo] = useState(2001);
-  const [selectedMonth, setSelectedMonth] = useState(null); // null = todo el año
-  const [selectedWeekdays, setSelectedWeekdays] = useState([]); // Array de días [0-6]
+  const [selectedMonth, setSelectedMonth] = useState(null); // null = whole year
+  const [selectedWeekdays, setSelectedWeekdays] = useState([]); // Array of days [0-6]
   const [showHelp, setShowHelp] = useState(false);
 
-  const weekdays = [
-    { value: 0, label: 'Dom' },
-    { value: 1, label: 'Lun' },
-    { value: 2, label: 'Mar' },
-    { value: 3, label: 'Mié' },
-    { value: 4, label: 'Jue' },
-    { value: 5, label: 'Vie' },
-    { value: 6, label: 'Sáb' }
-  ];
+  const weekdays = tList('calendar.weekdaysShort').map((label, value) => ({ value, label }));
+  const months = tList('calendar.months');
 
   const toggleWeekday = (day) => {
     if (selectedWeekdays.includes(day)) {
@@ -41,7 +36,7 @@ export function TemporalAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId, 
           data = await manager.getHourlyAverages(yearFrom, selectedMonth, selectedWeekdays, selectedHexId);
           const sqlQuery = manager.buildHourlyQuery(yearFrom, selectedMonth, selectedWeekdays, selectedHexId);
           metadata = {
-            type: 'Horas Pico (promedio por hora del día)',
+            type: t('temporal.typeHourly'),
             year: yearFrom,
             month: selectedMonth,
             weekdays: selectedWeekdays,
@@ -54,7 +49,7 @@ export function TemporalAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId, 
         case 'seasonal':
           data = await manager.getSeasonalAverages(yearFrom, yearTo);
           metadata = {
-            type: 'Análisis Estacional',
+            type: t('temporal.typeSeasonal'),
             yearFrom,
             yearTo
           };
@@ -63,7 +58,7 @@ export function TemporalAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId, 
         case 'weekday':
           data = await manager.getWeekdayAverages(yearFrom, selectedMonth);
           metadata = {
-            type: 'Días de la Semana',
+            type: t('temporal.typeWeekday'),
             year: yearFrom,
             month: selectedMonth
           };
@@ -72,7 +67,7 @@ export function TemporalAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId, 
         case 'yearly':
           data = await manager.getYearlyTrend(yearFrom, yearTo);
           metadata = {
-            type: 'Evolución Anual',
+            type: t('temporal.typeYearly'),
             yearFrom,
             yearTo
           };
@@ -82,22 +77,22 @@ export function TemporalAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId, 
           break;
       }
     } catch (error) {
-      console.error('Error en análisis temporal:', error);
-      alert('Error al calcular el análisis: ' + error.message);
+      console.error('Temporal analysis failed:', error);
+      alert(t('common.errorCalculating') + error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const currentHelp = ANALYSIS_HELP[analysisType];
+  const currentHelp = ANALYSIS_HELP[lang]?.[analysisType] || ANALYSIS_HELP.en[analysisType];
 
   return (
     <div style={{ padding: '12px', fontSize: '13px' }}>
-      {/* Tipo de análisis con botón de ayuda */}
+      {/* Analysis type with help button */}
       <div style={{ marginBottom: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
           <label style={{ fontWeight: '600' }}>
-            Tipo de análisis
+            {t('common.analysisType')}
           </label>
           <button
             onClick={() => setShowHelp(true)}
@@ -121,7 +116,7 @@ export function TemporalAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId, 
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'rgba(99, 102, 241, 0.15)';
             }}
-            title="Ver ayuda sobre este análisis"
+            title={t('help.viewHelp')}
           >
             ?
           </button>
@@ -139,17 +134,17 @@ export function TemporalAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId, 
             color: '#374151',
           }}
         >
-          <option value="hourly">Horas pico (promedio por hora del día)</option>
-          <option value="seasonal">Estacional (por estación del año)</option>
-          <option value="weekday">Días de la semana</option>
-          <option value="yearly">Evolución anual</option>
+          <option value="hourly">{t('temporal.hourly')}</option>
+          <option value="seasonal">{t('temporal.seasonal')}</option>
+          <option value="weekday">{t('temporal.weekday')}</option>
+          <option value="yearly">{t('temporal.yearly')}</option>
         </select>
       </div>
 
-      {/* Año desde / Año */}
+      {/* Year from / Year */}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-          {analysisType === 'hourly' || analysisType === 'weekday' ? 'Año' : 'Año desde'}
+          {analysisType === 'hourly' || analysisType === 'weekday' ? t('common.year') : t('common.yearFrom')}
         </label>
         <input
           type="number"
@@ -169,11 +164,11 @@ export function TemporalAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId, 
         />
       </div>
 
-      {/* Año hasta (solo para seasonal y yearly) */}
+      {/* Year to (seasonal and yearly only) */}
       {(analysisType === 'seasonal' || analysisType === 'yearly') && (
         <div style={{ marginBottom: '12px' }}>
           <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-            Año hasta
+            {t('common.yearTo')}
           </label>
           <input
             type="number"
@@ -194,11 +189,11 @@ export function TemporalAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId, 
         </div>
       )}
 
-      {/* Mes (solo para hourly y weekday) */}
+      {/* Month (hourly and weekday only) */}
       {(analysisType === 'hourly' || analysisType === 'weekday') && (
         <div style={{ marginBottom: '12px' }}>
           <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-            Mes {analysisType === 'hourly' && '(opcional)'}
+            {t('common.month')} {analysisType === 'hourly' && t('common.optional')}
           </label>
           <select
             value={selectedMonth || ''}
@@ -213,21 +208,21 @@ export function TemporalAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId, 
               color: '#374151',
             }}
           >
-            {analysisType === 'hourly' && <option value="">Todo el año</option>}
-            {[...Array(12)].map((_, i) => (
+            {analysisType === 'hourly' && <option value="">{t('common.wholeYear')}</option>}
+            {months.map((name, i) => (
               <option key={i + 1} value={i + 1}>
-                {new Date(2000, i, 1).toLocaleString('es-ES', { month: 'long' })}
+                {name}
               </option>
             ))}
           </select>
         </div>
       )}
 
-      {/* Selector de días de la semana (solo para hourly) */}
+      {/* Weekday selector (hourly only) */}
       {analysisType === 'hourly' && (
         <div style={{ marginBottom: '12px' }}>
           <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-            Días de la semana (opcional)
+            {t('temporal.weekdaysOptional')}
           </label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
             {weekdays.map(day => (
@@ -251,16 +246,16 @@ export function TemporalAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId, 
             ))}
           </div>
           <div style={{ fontSize: '11px', marginTop: '6px', opacity: 0.7 }}>
-            {selectedWeekdays.length === 0 ? 'Todos los días' : `${selectedWeekdays.length} día(s) seleccionado(s)`}
+            {selectedWeekdays.length === 0 ? t('common.allDays') : t('common.daysSelected', { count: selectedWeekdays.length })}
           </div>
         </div>
       )}
 
-      {/* Campo de ID de hexágono seleccionado */}
+      {/* Selected hexagon ID */}
       {selectedHexId && (
         <div style={{ marginBottom: '12px' }}>
           <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px' }}>
-            ID Hexágono
+            {t('common.hexagonId')}
           </label>
           <div style={{ display: 'flex', gap: '6px' }}>
             <input
@@ -297,18 +292,18 @@ export function TemporalAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId, 
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
               }}
-              title="Limpiar selección de hexágono"
+              title={t('common.clearHexSelection')}
             >
               ✕
             </button>
           </div>
           <div style={{ fontSize: '11px', marginTop: '4px', opacity: 0.7 }}>
-            Análisis aplicado solo a este hexágono
+            {t('common.analysisAppliedToHex')}
           </div>
         </div>
       )}
 
-      {/* Botón calcular */}
+      {/* Calculate button */}
       <button
         onClick={handleCalculate}
         style={{
@@ -329,10 +324,10 @@ export function TemporalAnalysis({ parquetBaseUrl, selectedHexId, onClearHexId, 
           e.currentTarget.style.background = 'rgba(99, 102, 241, 0.9)';
         }}
       >
-        Calcular
+        {t('common.calculate')}
       </button>
 
-      {/* Modal de ayuda */}
+      {/* Help modal */}
       <HelpModal
         isOpen={showHelp}
         onClose={() => setShowHelp(false)}

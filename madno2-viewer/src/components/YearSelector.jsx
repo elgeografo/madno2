@@ -1,9 +1,12 @@
 import React from 'react';
+import { useI18n } from '../i18n/useI18n';
 
 /**
- * Selector de año para visualización de población
+ * Year selector for the population visualisation.
  */
 export function YearSelector({ selectedYear, setSelectedYear, availableYears }) {
+  const { t } = useI18n();
+
   return (
     <div
       style={{
@@ -18,7 +21,7 @@ export function YearSelector({ selectedYear, setSelectedYear, availableYears }) 
       }}
     >
       <div style={{ marginBottom: '8px', fontWeight: 'bold', fontSize: '14px', color: '#1f2937' }}>
-        Año de población
+        {t('population.populationYear')}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {availableYears.map((year) => (
