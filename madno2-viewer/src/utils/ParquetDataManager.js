@@ -27,6 +27,18 @@ class ParquetDataManager {
     // Estado de precarga
     this.preloadQueue = [];
     this.isPreloading = false;
+
+    // Result labels (series names, weekday and season names, statistic rows).
+    // The UI sets these from the active language; English is the default.
+    this.labels = ParquetDataManager.DEFAULT_LABELS;
+  }
+
+  /**
+   * Set the labels used for series names, weekday/season names and statistic
+   * rows. Called by the UI whenever the interface language changes.
+   */
+  setLabels(labels) {
+    this.labels = { ...ParquetDataManager.DEFAULT_LABELS, ...(labels || {}) };
   }
 
   /**
@@ -378,25 +390,25 @@ class ParquetDataManager {
           `);
 
           const rows = result.toArray();
-          const prefix = weekdays.length === 1 ? this.getDayName(weekdays[0]) : 'Todos los días';
+          const prefix = weekdays.length === 1 ? this.getDayName(weekdays[0]) : this.labels.allDays;
 
           return [
             {
-              series: `${prefix} (Promedio)`,
+              series: `${prefix} (${this.labels.average})`,
               data: rows.map(row => ({
                 label: `${row.hour}h`,
                 value: row.avg_value
               }))
             },
             {
-              series: `${prefix} (Máximo)`,
+              series: `${prefix} (${this.labels.maximum})`,
               data: rows.map(row => ({
                 label: `${row.hour}h`,
                 value: row.max_value
               }))
             },
             {
-              series: `${prefix} (Mínimo)`,
+              series: `${prefix} (${this.labels.minimum})`,
               data: rows.map(row => ({
                 label: `${row.hour}h`,
                 value: row.min_value
@@ -464,25 +476,25 @@ class ParquetDataManager {
         `);
 
         const rows = result.toArray();
-        const prefix = weekdays.length === 1 ? this.getDayName(weekdays[0]) : 'Todos los días';
+        const prefix = weekdays.length === 1 ? this.getDayName(weekdays[0]) : this.labels.allDays;
 
         return [
           {
-            series: `${prefix} (Promedio)`,
+            series: `${prefix} (${this.labels.average})`,
             data: rows.map(row => ({
               label: `${row.hour}h`,
               value: row.avg_value
             }))
           },
           {
-            series: `${prefix} (Máximo)`,
+            series: `${prefix} (${this.labels.maximum})`,
             data: rows.map(row => ({
               label: `${row.hour}h`,
               value: row.max_value
             }))
           },
           {
-            series: `${prefix} (Mínimo)`,
+            series: `${prefix} (${this.labels.minimum})`,
             data: rows.map(row => ({
               label: `${row.hour}h`,
               value: row.min_value
@@ -532,8 +544,7 @@ class ParquetDataManager {
    * Helper: Obtiene el nombre del día de la semana
    */
   getDayName(dow) {
-    const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    return days[dow] || 'Desconocido';
+    return this.labels.weekdaysShort[dow] || this.labels.unknown;
   }
 
   /**
@@ -576,7 +587,7 @@ class ParquetDataManager {
 
       const rows = result.toArray();
       return rows.map(row => ({
-        label: row.season,
+        label: this.labels.seasons[row.season] || row.season,
         value: row.avg_value
       }));
     } catch (error) {
@@ -604,7 +615,7 @@ class ParquetDataManager {
         ORDER BY dow
       `);
 
-      const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      const days = this.labels.weekdaysShort;
       const rows = result.toArray();
       return rows.map(row => ({
         label: days[row.dow],
@@ -829,7 +840,7 @@ LIMIT ${topN}`;
 
       return {
         data: rows.map((row, index) => ({
-          label: `Día ${row.day}`,
+          label: `${this.labels.day} ${row.day}`,
           day: row.day,
           value: row.avg_value,
           max_value: row.max_value,
@@ -977,7 +988,7 @@ ORDER BY ds.avg_value DESC`;
 
       return {
         data: rows.map((row, index) => ({
-          label: `Día ${row.day}`,
+          label: `${this.labels.day} ${row.day}`,
           day: row.day,
           value: row.avg_value,
           max_value: row.max_value,
@@ -1058,7 +1069,7 @@ ORDER BY max_consecutive_hours DESC, avg_value DESC`;
 
       return {
         data: rows.map((row, index) => ({
-          label: `Día ${row.day}`,
+          label: `${this.labels.day} ${row.day}`,
           day: row.day,
           value: row.avg_value,
           max_value: row.max_value,
@@ -1151,8 +1162,8 @@ ORDER BY hour`;
       }));
 
       const data = [
-        { series: `Año ${year1}`, data: year1Data },
-        { series: `Año ${year2}`, data: year2Data }
+        { series: `${this.labels.year} ${year1}`, data: year1Data },
+        { series: `${this.labels.year} ${year2}`, data: year2Data }
       ];
 
       console.log('📊 Datos comparativos (formato series):', {
@@ -1217,20 +1228,20 @@ WHERE 1=1 ${dayFilter} ${hexFilter}`;
 
       // Formatear los datos como array de objetos {label, value} para mostrar en tabla
       const data = [
-        { label: 'Total de registros', value: row.total_registros.toLocaleString() },
-        { label: 'Media', value: `${row.media.toFixed(2)} µg/m³` },
-        { label: 'Mediana', value: `${row.mediana.toFixed(2)} µg/m³` },
-        { label: 'Desviación estándar', value: `${row.desviacion_estandar.toFixed(2)} µg/m³` },
-        { label: 'Varianza', value: `${row.varianza.toFixed(2)}` },
-        { label: 'Mínimo', value: `${row.minimo.toFixed(2)} µg/m³` },
-        { label: 'Máximo', value: `${row.maximo.toFixed(2)} µg/m³` },
-        { label: 'Rango', value: `${row.rango.toFixed(2)} µg/m³` },
-        { label: 'Percentil 25 (P25)', value: `${row.p25.toFixed(2)} µg/m³` },
-        { label: 'Percentil 50 (P50/Mediana)', value: `${row.p50.toFixed(2)} µg/m³` },
-        { label: 'Percentil 75 (P75)', value: `${row.p75.toFixed(2)} µg/m³` },
-        { label: 'Percentil 90 (P90)', value: `${row.p90.toFixed(2)} µg/m³` },
-        { label: 'Percentil 95 (P95)', value: `${row.p95.toFixed(2)} µg/m³` },
-        { label: 'Percentil 99 (P99)', value: `${row.p99.toFixed(2)} µg/m³` }
+        { label: this.labels.stats.totalRecords, value: row.total_registros.toLocaleString() },
+        { label: this.labels.stats.mean, value: `${row.media.toFixed(2)} µg/m³` },
+        { label: this.labels.stats.median, value: `${row.mediana.toFixed(2)} µg/m³` },
+        { label: this.labels.stats.stdDev, value: `${row.desviacion_estandar.toFixed(2)} µg/m³` },
+        { label: this.labels.stats.variance, value: `${row.varianza.toFixed(2)}` },
+        { label: this.labels.stats.minimum, value: `${row.minimo.toFixed(2)} µg/m³` },
+        { label: this.labels.stats.maximum, value: `${row.maximo.toFixed(2)} µg/m³` },
+        { label: this.labels.stats.range, value: `${row.rango.toFixed(2)} µg/m³` },
+        { label: this.labels.stats.p25, value: `${row.p25.toFixed(2)} µg/m³` },
+        { label: this.labels.stats.p50, value: `${row.p50.toFixed(2)} µg/m³` },
+        { label: this.labels.stats.p75, value: `${row.p75.toFixed(2)} µg/m³` },
+        { label: this.labels.stats.p90, value: `${row.p90.toFixed(2)} µg/m³` },
+        { label: this.labels.stats.p95, value: `${row.p95.toFixed(2)} µg/m³` },
+        { label: this.labels.stats.p99, value: `${row.p99.toFixed(2)} µg/m³` }
       ];
 
       console.log('📊 Resumen estadístico:', row);
@@ -1466,13 +1477,49 @@ ORDER BY dow, hour`;
   static getInstance(baseUrl) {
     if (!ParquetDataManager.instance) {
       if (!baseUrl) {
-        throw new Error('Se requiere baseUrl para la primera inicialización');
+        throw new Error('A baseUrl is required for the first initialisation');
       }
       ParquetDataManager.instance = new ParquetDataManager(baseUrl);
+      // Apply whatever labels the UI registered before the instance existed
+      if (ParquetDataManager.pendingLabels) {
+        ParquetDataManager.instance.setLabels(ParquetDataManager.pendingLabels);
+      }
     }
     return ParquetDataManager.instance;
   }
 }
+
+/**
+ * Default (English) result labels. The UI overrides these via setLabels()
+ * so that query results follow the selected interface language.
+ */
+ParquetDataManager.DEFAULT_LABELS = {
+  weekdaysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  allDays: 'All days',
+  unknown: 'Unknown',
+  average: 'Average',
+  maximum: 'Maximum',
+  minimum: 'Minimum',
+  day: 'Day',
+  year: 'Year',
+  seasons: { Invierno: 'Winter', Primavera: 'Spring', Verano: 'Summer', 'Otoño': 'Autumn' },
+  stats: {
+    totalRecords: 'Total records',
+    mean: 'Mean',
+    median: 'Median',
+    stdDev: 'Standard deviation',
+    variance: 'Variance',
+    minimum: 'Minimum',
+    maximum: 'Maximum',
+    range: 'Range',
+    p25: '25th percentile (P25)',
+    p50: '50th percentile (P50/median)',
+    p75: '75th percentile (P75)',
+    p90: '90th percentile (P90)',
+    p95: '95th percentile (P95)',
+    p99: '99th percentile (P99)',
+  },
+};
 
 // Singleton global (mantener por compatibilidad)
 let globalManager = null;

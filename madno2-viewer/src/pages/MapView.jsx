@@ -20,10 +20,14 @@ import { PopulationInfoPanel } from '../components/PopulationInfoPanel';
 import { HexTooltip } from '../components/HexTooltip';
 import { MapViewer } from '../components/MapViewer';
 import { useI18n } from '../i18n/useI18n';
+import { useResultLabels } from '../i18n/useResultLabels';
 
 export function MapView() {
   const { t } = useI18n();
   const { mapId } = useParams();
+
+  // Keep query result labels (series, weekdays, statistics) in the UI language
+  useResultLabels();
   const mapConfig = MAPS_CONFIG[mapId];
 
   // Controles de visualización

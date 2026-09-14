@@ -35,7 +35,7 @@ export function D3Chart({ data, chartType, metadata, isLoading, onClear }) {
 
     // Render according to chart type
     if (chartType === 'line') {
-      renderLineChartWithTooltip(svgRef.current, data, 400, 250, chartLabels);
+      renderLineChartWithTooltip(svgRef.current, data, 400, 250, true, chartLabels);
     } else if (chartType === 'bar') {
       renderBarChartWithTooltip(svgRef.current, data, 400, 250, chartLabels);
     } else if (chartType === 'summary') {
